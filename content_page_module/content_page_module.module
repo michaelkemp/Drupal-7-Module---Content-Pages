@@ -1,0 +1,754 @@
+<?php
+
+/*
+ *
+ * implements hook_help($path, $arg)
+ *
+*/
+function content_page_module_help($path, $arg){
+    switch($path){
+        case "admin/help#content_page_module": return '<p>' . t("Menu & Layout Module for Content Pages.") . '</p>'; break;
+    }
+}
+
+/**
+ * Implements hook_node_info().
+ */
+function content_page_module_node_info() {
+  $items = array(
+    'content_page' => array(
+      'name' => t('Content Page'),
+      'base' => 'node_content',
+      'description' => '',
+      'has_title' => '1',
+      'title_label' => t('Title'),
+      'help' => '',
+    ),
+    'content_page_article' => array(
+      'name' => t('Content Page Article'),
+      'base' => 'node_content',
+      'description' => '',
+      'has_title' => '1',
+      'title_label' => t('Title'),
+      'help' => '',
+    ),
+    'content_page_file' => array(
+      'name' => t('Content Page File'),
+      'base' => 'node_content',
+      'description' => '',
+      'has_title' => '1',
+      'title_label' => t('Title'),
+      'help' => '',
+    ),
+  );
+  drupal_alter('node_info', $items);
+  return $items;
+}
+
+
+
+// =========================== BLOCKS =========================== 
+/**
+ * Implements hook_block_info().
+ */
+function content_page_module_block_info(){
+    $blocks = array();
+    for($i=1;$i<=8;++$i) {
+        $blocks["cpmBlankBlock${i}"] = array('info' => t("Blank Block ${i}"), 'cache' => DRUPAL_CACHE_PER_PAGE, );
+    }
+	
+	$blocks['cpmIndexFeature'] = array(
+        'info' => t("Show Featured Content Page"),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+    );	
+	
+	$blocks['cpmFileDownload'] = array(
+        'info' => t("File Download"),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+    );	
+	
+    return $blocks;
+}
+
+/**
+ *  Implements hook_block_view().
+ */
+function content_page_module_block_view($block_name = ""){
+    $block = array();
+    
+    for($i=1;$i<=8;++$i) {
+        $name = "cpmBlankBlock${i}";
+        if ($block_name == $name) {
+            $block['subject'] = t("Blank Block ${i}");
+            $block['content'] = cpmBlankBlock();
+            return $block;
+        }
+    }
+    switch ($block_name) {
+        case 'cpmIndexFeature':
+            $block['subject'] = t("Show Featured Content Page");
+            $block['content'] = cpmIndexFeature();
+            return $block;
+        case 'cpmFileDownload':
+            $block['subject'] = t("File Download");
+            $block['content'] = cpmFileDownload();
+            return $block;
+	}
+}
+
+function cpmFileDownload() {
+	if (arg(0) == 'node' && is_numeric(arg(1))) {
+		$nid = arg(1);
+		$node = node_load($nid);
+		$uri = isset($node->field_content_page_physical_file[LANGUAGE_NONE][0]["uri"]) ? $node->field_content_page_physical_file[LANGUAGE_NONE][0]["uri"] : "";
+		$filename = isset($node->field_content_page_physical_file[LANGUAGE_NONE][0]["filename"]) ? $node->field_content_page_physical_file[LANGUAGE_NONE][0]["filename"] : "";
+		$filemime = isset($node->field_content_page_physical_file[LANGUAGE_NONE][0]["filemime"]) ? $node->field_content_page_physical_file[LANGUAGE_NONE][0]["filemime"] : "";
+		$filesize = isset($node->field_content_page_physical_file[LANGUAGE_NONE][0]["filesize"]) ? $node->field_content_page_physical_file[LANGUAGE_NONE][0]["filesize"] : 0;
+		$path = drupal_realpath($uri);
+
+		// ======= in browser check ========
+		$types = variable_get("content_page_module_FILE_IN_BROWSER","");
+		$comma = preg_replace('/\s+/',',',trim(preg_replace('/[^a-z0-9]/',' ',$types)));
+		$inBrowse = explode(",",$comma);
+		$openIB = false;
+		$testFN = strtolower(trim($filename));
+		foreach($inBrowse as $ext) {
+			$testEXT = "." . $ext;
+			$length = strlen($testEXT);
+			if ((trim($ext) != "") && (substr($testFN, -$length) === $testEXT)) {
+				$openIB = true;
+			}
+		}
+
+		if ($openIB) {
+			$disposition = "inline";
+		} else {
+			$disposition = "attachment";
+		}
+		
+		header("Content-Length: ${filesize}");
+		header("Content-Type: ${filemime}");
+		header("Content-Disposition: ${disposition}; filename=${filename}");
+		@readfile($path);
+		exit();
+	}
+}
+
+function cpmBlankBlock() {
+	$output = array (
+		'#type' => 'markup',
+		'#prefix' => '<div class="blank-block">',
+		'#markup' => '&nbsp;',
+		'#suffix' => '</div>',
+		);
+	return $output;
+}
+
+function cpmIndexFeature() {
+	
+    $mlid = 0;
+    $json = variable_get("content_page_module_MENU_TREE", "{}");
+    $menuArray = @json_decode($json,true);
+    if (json_last_error() == JSON_ERROR_NONE) {
+        foreach($menuArray as $item) {
+            if (strtolower(trim($item["link_path"])) == strtolower(trim(current_path()))) {
+                $mlid = $item["mlid"];
+            }
+        }
+	}
+	$nid = intval(variable_get("content_page_module_INDEX_FEATURE_${mlid}", -1));
+	if ($nid >= 0) {
+		$node = node_load($nid);
+		
+		$nid = isset($node->nid) 																? $node->nid : "";
+		$title = isset($node->title) 															? $node->title : "";
+		$uri = isset($node->field_content_page_image[LANGUAGE_NONE][0]["uri"]) 					? $node->field_content_page_image[LANGUAGE_NONE][0]["uri"] : "";
+		$alt = isset($node->field_content_page_image[LANGUAGE_NONE][0]["alt"]) 					? $node->field_content_page_image[LANGUAGE_NONE][0]["alt"] : "";
+		$caption = isset($node->field_content_page_image_caption[LANGUAGE_NONE][0]["value"]) 	? trim($node->field_content_page_image_caption[LANGUAGE_NONE][0]["value"]) : "";
+		$text = isset($node->field_content_page_text[LANGUAGE_NONE][0]["value"]) 				? $node->field_content_page_text[LANGUAGE_NONE][0]["value"] : "";
+		$summary = isset($node->field_content_page_text[LANGUAGE_NONE][0]["summary"]) 			? $node->field_content_page_text[LANGUAGE_NONE][0]["summary"] : "";
+	
+		if ($uri != "") {
+			$url = image_style_url("content_page_module_size",$uri);
+			$capTxt = ($caption != "") ? "<figcaption>${caption}</figcaption>" : "";
+			$imgMarkup = "<figure><img class='img-fluid content_page_image' src='${url}' alt='${alt}'>${capTxt}</figure>";
+		} else {
+			$imgMarkup = "";
+		}
+		
+		$html = "<div>${imgMarkup}<div class='content_page_text'>${text}</div></div>";
+
+	} else {
+		$html = "&nbsp;";
+	}
+	
+	$output = array (
+		'#type' => 'markup',
+		'#prefix' => '<div class="content_page_module_index_feature">',
+		'#markup' => $html,
+		'#suffix' => '</div>',
+		);
+	return $output;
+}
+
+
+/*
+ *
+ * implements hook_theme()
+ *
+*/
+function content_page_module_theme($existing, $type, $theme, $path) {
+    $theme = array();
+    $theme['node__content_page'] = array(
+        'render element' => 'content',
+        'base hook' => 'node',
+        'template' => 'node--content_page',
+        'path' => drupal_get_path('module', 'content_page_module') . '/theme',
+    );
+    
+    $theme['node__content_page_article'] = array(
+        'render element' => 'content',
+        'base hook' => 'node',
+        'template' => 'node--content_page_article',
+        'path' => drupal_get_path('module', 'content_page_module') . '/theme',
+    );
+    
+    return $theme;
+}
+
+/*
+ *
+ * hook_menu_link_insert($link), hook_menu_link_update($link), hook_menu_link_delete($link)
+ *
+*/
+function content_page_module_menu_link_insert($link) { cpmSetMenuVariable("insert",$link); }
+function content_page_module_menu_link_update($link) { cpmSetMenuVariable("update",$link); }
+function content_page_module_menu_link_delete($link) { cpmSetMenuVariable("delete",$link); }
+
+function cpmSetMenuVariable($action,$link) {
+    
+    // ======================== CREATE MENU LINK IF NEEDED ========================
+    $addArray = array();
+    $addArray["link_path"] =    isset($link['link_path'])   ? $link['link_path'] : "";
+    $addArray["link_title"] =   isset($link['link_title'])  ? $link['link_title'] : "";
+    $addArray["depth"] =        isset($link['depth'])       ? $link['depth'] : 0;
+    $addArray["weight"] =       isset($link['weight'])      ? $link['weight'] : 0;
+    $addArray["external"] =     isset($link['external'])    ? $link['external'] : 0;
+    $addArray["mlid"] =         isset($link['mlid'])        ? $link['mlid'] : 0;
+    $addArray["plid"] =         isset($link['plid'])        ? $link['plid'] : 0;
+    $addArray["normal_path"] =  drupal_get_normal_path($addArray["link_path"]); 
+    preg_match('/(node\/)([0-9]+)/', $addArray["normal_path"], $matches);
+    $addArray["nid"] = isset($matches[2]) ? $matches[2] : -1;
+    if ($addArray["nid"] >= 0) { $addArray["node_type"] = db_query("SELECT type FROM {node} WHERE nid = :nid", array(':nid' => $addArray["nid"]))->fetchField(); } else { $addArray["node_type"] = ""; }
+
+    // ======================== BUILD MENU TREE ========================
+    menu_rebuild();
+    $mainMenu = menu_build_tree("main-menu");
+    $tmpArray = cpmParseMenuTree($mainMenu);
+    
+    // ======================== IS CURRENT LINK IN MENU TREE ========================
+    $found = -1;
+    foreach($tmpArray as $key=>$value) {
+        if ($value["mlid"] == $addArray["mlid"]) {
+            $found = $key;    
+        }
+    }
+    
+    // ======================== ADD OR REMOVE AS NEEDED ========================
+    switch($action) {
+        case "insert": if ($found < 0) {$tmpArray[] = $addArray;} break;
+        case "update": if ($found < 0) {$tmpArray[] = $addArray;} break;
+        case "delete": if ($found >= 0) {unset($tmpArray[$found]);} break;
+    }
+    
+    // ======================== UPDATE VARIABLE ========================
+    $json = json_encode($tmpArray);
+    variable_set("content_page_module_MENU_TREE", $json);
+
+}
+
+// ======================== RETURNS SIMPLE FLAT MENU TREE JSON ========================
+function cpmParseMenuTree($menuArray) {
+    $tmp = array();
+    $cnt = 0;
+    foreach($menuArray as $parent) {
+        $link_path =    isset($parent['link']['link_path'])     ? $parent['link']['link_path'] : "";
+        $link_title =   isset($parent['link']['link_title'])    ? $parent['link']['link_title'] : "";
+        $depth =        isset($parent['link']['depth'])         ? $parent['link']['depth'] : 0;
+        $weight =       isset($parent['link']['weight'])        ? $parent['link']['weight'] : 0;
+        $external =     isset($parent['link']['external'])      ? $parent['link']['external'] : 0;
+        $mlid =         isset($parent['link']['mlid'])          ? $parent['link']['mlid'] : 0;
+        $plid =         isset($parent['link']['plid'])          ? $parent['link']['plid'] : 0;
+        
+        $normal_path = drupal_get_normal_path($link_path);       
+        preg_match('/(node\/)([0-9]+)/', $normal_path, $matches);
+        $nid = isset($matches[2]) ? $matches[2] : -1;
+        if ($nid >= 0) {
+            $node_type = db_query("SELECT type FROM {node} WHERE nid = :nid", array(':nid' => $nid))->fetchField();
+        } else {
+            $node_type = "";
+        }
+        
+        $tmp[$cnt]["link_path"]     = $link_path;
+        $tmp[$cnt]["normal_path"]   = $normal_path;
+        $tmp[$cnt]["link_title"]    = $link_title;
+        $tmp[$cnt]["depth"]         = $depth;
+        $tmp[$cnt]["weight"]        = $weight;
+        $tmp[$cnt]["external"]      = $external;
+        $tmp[$cnt]["mlid"]          = $mlid;
+        $tmp[$cnt]["plid"]          = $plid;
+        $tmp[$cnt]["nid"]           = $nid;
+        $tmp[$cnt]["node_type"]     = $node_type;
+        ++$cnt;
+        if (isset($parent['below'])) { 
+            $tmpBelow = cpmParseMenuTree($parent['below']);
+            foreach($tmpBelow as $item) {
+                $tmp[$cnt]["link_path"]     = $item["link_path"];
+                $tmp[$cnt]["normal_path"]   = $item["normal_path"];
+                $tmp[$cnt]["link_title"]    = $item["link_title"];
+                $tmp[$cnt]["depth"]         = $item["depth"];
+                $tmp[$cnt]["weight"]        = $item["weight"];
+                $tmp[$cnt]["external"]      = $item["external"];
+                $tmp[$cnt]["mlid"]          = $item["mlid"];
+                $tmp[$cnt]["plid"]          = $item["plid"];
+                $tmp[$cnt]["nid"]           = $item["nid"];
+                $tmp[$cnt]["node_type"]     = $item["node_type"];
+                ++$cnt;
+            }
+        }
+    }
+    return $tmp;
+} 
+
+
+/*
+ *
+ * implements hook_menu()
+ *
+*/
+function content_page_module_menu() {
+    $items = array();
+
+    $menuGroup = variable_get('content_page_module_MENU_GROUP', 'section');   
+    $items["${menuGroup}/%"] = array(
+        'title' => 'Create Index Page',
+        'page callback' => 'cpmIndex',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,  
+    );
+    
+    $items['admin/config/content/content_page_module'] = array(
+        'title' => 'Content Page Config',
+        'description' => 'Configuration for Content Page module',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('content_page_module_form'),
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $items;
+}
+
+function cpmIndex() {
+    
+    $svgPath = '/' . drupal_get_path('module', 'content_page_module') . '/letters';
+    
+	$headDisp = 0;
+	$headTitl = "";
+	$headText = "";
+	
+    $linkTree = array();
+    // ==================================================== BUILD LINK TREE ====================================================
+    $json = variable_get("content_page_module_MENU_TREE", "{}");
+    $menuArray = @json_decode($json,true);
+    if (json_last_error() == JSON_ERROR_NONE) {
+        // ======== THIS MENU ID ========
+        $mlid = 0;
+        foreach($menuArray as $item) {
+            if (strtolower(trim($item["link_path"])) == strtolower(trim(current_path()))) {
+                $mlid = $item["mlid"];
+				$headDisp = intval(variable_get("content_page_module_INDEX_DISPLAY_${mlid}", 0));
+				$headTitl = variable_get("content_page_module_INDEX_TITLE_${mlid}", "");
+				$headText = preg_replace("/[\n\r]/","</p><p>",variable_get("content_page_module_INDEX_HEADER_${mlid}", ""));
+            }
+        }
+        // ======== NODES LINKED TO THIS MENU ========
+        foreach($menuArray as $item) {
+            if ($item["plid"] == $mlid) {
+                $linkTree[] = $item;
+            }
+        }
+        // ======== CHILDREN LINKS TO PARENT NODE ========
+        foreach($linkTree as $key=>$parent) {
+            $mlid = $parent['mlid'];
+            foreach($menuArray as $item) {
+                if ($item["plid"] == $mlid) {
+                    $linkTree[$key]["child"][] = $item;
+                }
+            }
+        }
+    }
+ 
+    $contentPages = "";
+	if ($headDisp == 1) {
+		$contentPages.= "<div class='content_page_module_index_page_header'>";
+		$contentPages.= "<h2>${headTitl}</h2>";
+		$contentPages.= "<p>${headText}</p>";
+		$contentPages.= "</div>";
+	}
+	
+    // ==================================================== CREATE LAYOUTS ====================================================
+	$listLayout = "";
+	$tileLayout = "";
+    foreach($linkTree as $parent) {
+        $node_type = isset($parent["node_type"]) ? $parent["node_type"] : "";
+        $nid = isset($parent["nid"]) ? $parent["nid"] : -1;
+        $link_title = isset($parent["link_title"]) ? $parent["link_title"] : "";
+        $normal_path = isset($parent["normal_path"]) ? $parent["normal_path"] : "";
+        $external = isset($parent["external"]) ? intval($parent["external"]) : 0;
+        $link_path = ($external == 0) ? "/" . drupal_get_path_alias($normal_path) : $normal_path;
+        $target = ($external != 0) ? "target='_blank'" : "";
+
+        $child = isset($parent["child"]) ? $parent["child"] : array();
+        if (($node_type == "content_page") && ($nid >= 0)) {
+            $node = node_load($nid);
+            $title = isset($node->title) ? $node->title : "";
+            $uri = isset($node->field_content_page_image[LANGUAGE_NONE][0]['uri']) ? $node->field_content_page_image[LANGUAGE_NONE][0]['uri'] : "";
+            $imgALT = isset($node->field_content_page_image[LANGUAGE_NONE][0]['alt']) ? $node->field_content_page_image[LANGUAGE_NONE][0]['alt'] : "";
+            $text = isset($node->field_content_page_text[LANGUAGE_NONE][0]['value']) ? $node->field_content_page_text[LANGUAGE_NONE][0]['value'] : "";
+            $summary = isset($node->field_content_page_text[LANGUAGE_NONE][0]['summary']) ? $node->field_content_page_text[LANGUAGE_NONE][0]['summary'] : "";
+            $alphaNumTitle = preg_replace('/[^a-z0-9]/','',strtolower($title));
+
+            if (trim($uri) != "") {
+                $imgURL = image_style_url("content_page_module_size_thumb",$uri);
+                $imgMarkupList = "<a href='${link_path}' ${target}><img class='index_img' src='${imgURL}' alt='${imgALT}'></a>";
+                
+                $imgURL = image_style_url("content_page_module_size_tile",$uri);
+                $imgMarkupTile = "<a href='${link_path}' ${target}><img class='index_img' src='${imgURL}' alt='${imgALT}'></a>";
+                
+                
+            } else {
+                $imgSVG = ($alphaNumTitle == "") ? $svgPath . "/unknown.svg" :  $svgPath . "/" .substr($alphaNumTitle,0,1). ".svg";
+                $imgMarkupList = "<a href='${link_path}' ${target}><img class='index_img' src='${imgSVG}' alt='${imgALT}'></a>";
+                $imgMarkupTile = "<a href='${link_path}' ${target}><img class='index_img' src='${imgSVG}' alt='${imgALT}'></a>";
+            }
+            
+            $outText = (trim($summary) == "") ?  text_summary($text, NULL, 256) : text_summary($summary, NULL, 256);
+            $childLinks = "<ul>";
+            $childCnt = 0;
+            foreach($child as $kid) {
+                $kidTitle = isset($kid["link_title"]) ? $kid["link_title"] : "";
+                $kidPath = isset($kid["normal_path"]) ? $kid["normal_path"] : "";
+                $kidExt = isset($kid["external"]) ? intval($kid["external"]) : 0;
+                $kidLink = ($kidExt == 0) ? "/" . drupal_get_path_alias($kidPath) : $kidPath;
+                $kidTarg = ($kidExt != 0) ? "target='_blank'" : "";
+                $childLinks.= "<li><a href='${kidLink}' ${kidTarg}>${kidTitle}</a></li>";
+                ++$childCnt;
+            }
+            $childLinks.= "</ul>";
+            $childLinks = ($childCnt > 0) ? $childLinks : "";
+            
+            $noImages = intval(variable_get("content_page_module_NO_INDEX_IMAGES", 0));
+            if ($noImages == 1) {
+                $noImg="_noimg";
+            } else {
+                $noImg="";
+            }
+$list=<<<HTML
+    <div class='index_list_row'>
+        <div class="content_index_landscape">
+            <div class="content_index_image${noImg}">${imgMarkupList}</div>
+            <div class="content_index_text${noImg}">
+                <a href='${link_path}' ${target}><h3 class="content_index_text_heading">${title}</h3></a>
+                <div class="content_index_text_summary">${outText}</div>
+                <div class="content_index_text_links">${childLinks}</div>
+             </div>
+         </div>
+    </div>
+HTML;
+
+$tile=<<<HTML
+    <div class='index_tile'>
+        <div class="content_index_portrait">
+            <div class="content_index_image${noImg}">${imgMarkupTile}</div>
+            <div class="content_index_text${noImg}">
+                <a href='${link_path}' ${target}><h3 class="content_index_text_heading">${title}</h3></a>
+                <div class="content_index_text_summary">${outText}</div>
+                <div class="content_index_text_links">${childLinks}</div>
+             </div>
+         </div>
+    </div>
+HTML;
+
+            $listLayout.= $list;
+            $tileLayout.= $tile;
+            
+        }
+    }
+    
+	$layout = intval(variable_get('content_page_module_INDEX_LAYOUT', '0'));
+	if ($layout == 0) {
+		$contentPages.= "<div id='waterfall_index'>${tileLayout}</div>";
+		$zepto = drupal_get_path('module', 'content_page_module') . '/js/zepto.js';
+		$water = drupal_get_path('module', 'content_page_module') . '/js/jquery.waterfall.js';
+		$contentPages.= "<script src='/${zepto}'></script>";
+		$contentPages.= "<script src='/${water}'></script>";
+		
+$js=<<<JS
+    (function ($) { jQuery(document).ready(function($) {
+        
+		$('#waterfall_index').waterfall({ 
+			colMinWidth: 300, 
+			defaultContainerWidth: 1140,
+			autoresize: true
+		});
+		
+    }); }(jQuery));    
+JS;
+
+		drupal_add_js($js, 'inline');
+		
+	} else {
+		$contentPages.= $listLayout;
+	}
+	$output = array (
+		'#type' => 'markup',
+		'#prefix' => '<div class="content-pages">',
+		'#markup' => $contentPages,
+		'#suffix' => '</div>',
+		);
+	return $output;
+
+}
+
+/*
+ *
+ * implements hook_form($form, &$form_state)
+ *
+*/
+function content_page_module_form($form, &$form_state) {
+   
+    $form["fieldsetFILES"] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Settings -- File Types"),
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,			
+    );
+            $instance_info = field_info_instance('node','field_content_page_physical_file','content_page_file');
+            $filesDefault = isset($instance_info["settings"]["file_extensions"]) ? $instance_info["settings"]["file_extensions"] : "";
+            $form["fieldsetFILES"]["content_page_module_FILE_UPLOAD_TYPES"] = array(
+                '#type'             => "textfield",
+                '#title'            => t("Allowed file extensions"),
+                '#description'      => t("Separate extensions with a space or comma and do not include the leading dot."),
+                '#default_value'    => $filesDefault,
+                '#format'           => "plain_text",
+                '#size'             => 60,
+                '#maxlength'        => 80,
+            );       
+            $form["fieldsetFILES"]["content_page_module_FILE_IN_BROWSER"] = array(
+                '#type'             => "textfield",
+                '#title'            => t("'Open in Browser' file extensions"),
+                '#description'      => t("Separate extensions with a space or comma and do not include the leading dot."),
+                '#default_value'    =>  variable_get('content_page_module_FILE_IN_BROWSER', ''),
+                '#format'           => "plain_text",
+                '#size'             => 60,
+                '#maxlength'        => 80,
+            );       
+  
+    $form["fieldsetPAGES"] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Settings -- Page Layouts"),
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,			
+    );
+            $form["fieldsetPAGES"]['content_page_module_PAGE_LAYOUT'] = array(
+                '#type' => 'select', 
+                '#title' => t('Content Page Display'),
+                '#default_value' => variable_get('content_page_module_PAGE_LAYOUT', '0'),
+                '#options' => array(
+                    '0' => t("Image In Content"),
+                    '1' => t("Image As 'Hero'"),
+                ),    
+                '#description' => t('How do you want the Content Pages to display the Content Page Image?'),
+                '#required' => TRUE,
+            );
+    
+    $form["fieldsetINDEX"] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Settings -- Index Pages"),
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,			
+    );
+            $form["fieldsetINDEX"]['content_page_module_INDEX_LAYOUT'] = array(
+                '#type' => 'select', 
+                '#title' => t('Index Layout'),
+                '#default_value' => variable_get('content_page_module_INDEX_LAYOUT', '0'),
+                '#options' => array(
+                    '0' => t("Tiles"),
+                    '1' => t("Lists"),
+                ),    
+                '#description' => t('How do you want the Index Page layed out?'),
+                '#required' => TRUE,
+            );
+            $form["fieldsetINDEX"]["content_page_module_NO_INDEX_IMAGES"] = array(
+                '#type'             => "checkbox",
+                '#title'            => t("Hide Images on Index Pages"),
+                '#default_value'    => variable_get("content_page_module_NO_INDEX_IMAGES", 0),
+            );
+	
+	
+	$result = db_query("SELECT nid, title FROM {node} WHERE (status = '1') AND (type = 'content_page')");
+	$options = array(-1=>" --- No Featured Page --- ");
+	foreach($result as $row) {
+		$options[$row->nid] = $row->title;
+	}
+	
+    $json = variable_get("content_page_module_MENU_TREE", "{}");
+    $menuArray = @json_decode($json,true);
+    $menuMLIDs = "";
+    if (json_last_error() == JSON_ERROR_NONE) {
+        foreach($menuArray as $item) {
+            $link_path = isset($item["link_path"]) ? $item["link_path"] : "";
+            $normal_path = isset($item["normal_path"]) ? $item["normal_path"] : "";
+            $link_title = isset($item["link_title"]) ? $item["link_title"] : "";
+            $depth = isset($item["depth"]) ? $item["depth"] : 0;
+            $weight = isset($item["weight"]) ? $item["weight"] : 0;
+            $external = isset($item["external"]) ? $item["external"] : 0;
+            $mlid = isset($item["mlid"]) ? $item["mlid"] : 0;
+            $plid = isset($item["plid"]) ? $item["plid"] : 0;
+            $nid = isset($item["nid"]) ? $item["nid"] : 0;
+            $node_type = isset($item["node_type"]) ? $item["node_type"] : 0;
+
+            if (($plid == 0) && (stripos($normal_path, variable_get('content_page_module_MENU_GROUP', 'section').'/' ) === 0) && ($mlid != 0)){
+                $menuMLIDs.= $mlid.",";
+				$form["fieldset${mlid}"] = array(
+					'#type' => 'fieldset',
+					'#title' => t("Index Page Header - ${link_title}"),
+					'#collapsible' => TRUE,
+					'#collapsed' => TRUE,			
+				);
+                    $form["fieldset${mlid}"]["content_page_module_INDEX_DISPLAY_${mlid}"] = array(
+                        '#type'             => "checkbox",
+                        '#title'            => t("Display Index Header"),
+                        '#default_value'    => variable_get("content_page_module_INDEX_DISPLAY_${mlid}", 0),
+                    );
+                    $form["fieldset${mlid}"]["content_page_module_INDEX_TITLE_${mlid}"] = array(
+                        '#type'             => "textfield",
+                        '#title'            => t("Title"),
+                        '#default_value'    => variable_get("content_page_module_INDEX_TITLE_${mlid}", "${link_title}"),
+                        '#format'           => "plain_text",
+                        '#size'             => 60,
+                        '#maxlength'        => 80,
+                    );       
+                    $form["fieldset${mlid}"]["content_page_module_INDEX_HEADER_${mlid}"] = array(
+                        '#type'             => "textarea",
+                        '#title'            => t("Text"),
+                        '#default_value'    => variable_get("content_page_module_INDEX_HEADER_${mlid}", ''),
+                        '#format'           => "plain_text",
+                        '#rows'             => 5,
+                        '#cols'             => 40,
+                        '#resizable'        => FALSE,
+                    );       
+                    $form["fieldset${mlid}"]["content_page_module_INDEX_FEATURE_${mlid}"] = array(
+                        '#type'             => "select",
+                        '#title'            => t("Featured Page"),
+                        '#default_value'    => variable_get("content_page_module_INDEX_FEATURE_${mlid}", -1),
+                        '#options'          => $options,
+                    );       
+            }
+            
+        }
+    }
+
+    $form["fieldsetMENUGROUP"] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Settings -- Menu URL"),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,			
+    );
+            $form["fieldsetMENUGROUP"]["content_page_module_MENU_GROUP"] = array(
+                '#type'             => "textfield",
+                '#title'            => t("Menu Pages URL"),
+                '#description'      => t("Waterfall Menus URLs will begin with this word - eg, section, group, index, menu. YOU WILL NEED TO SAVE THESE SETTINGS TWICE!! This ensures Caches are flushed and Menus rebuilt."),
+                '#default_value'    => variable_get('content_page_module_MENU_GROUP', 'section'),
+                '#format'           => "plain_text",
+                '#size'             => 20,
+                '#maxlength'        => 15,
+            );       
+            $form["fieldsetMENUGROUP"]["content_page_module_MENU_TO_SET"] = array(
+                '#type'             => "hidden",
+                '#value'            => $menuMLIDs,
+            );       
+            $form["fieldsetMENUGROUP"]["content_page_module_MENU_CRRNT"] = array(
+                '#type'             => "hidden",
+                '#value'            => variable_get('content_page_module_MENU_GROUP', 'section'),
+            );       
+    
+    
+    $form['#submit'][] = 'content_page_module_form_submit';
+    return system_settings_form($form);
+}
+
+/*
+ *
+ * implements hook_form_submit($form, &$form_state)
+ *
+*/
+function content_page_module_form_submit($form, &$form_state) {
+
+    menu_rebuild();
+    $mainMenu = menu_build_tree("main-menu");
+    $tmpArray = cpmParseMenuTree($mainMenu);
+    $json = json_encode($tmpArray);
+    variable_set("content_page_module_MENU_TREE", $json);   
+    drupal_flush_all_caches();
+
+}
+
+/*
+ *
+ * implements hook_form_validate($form, &$form_state)
+ *
+*/
+function content_page_module_form_validate($form, &$form_state) {
+
+    // ============= FIX MENU GROUP NAME =============
+    $newGRP = isset($form_state["input"]["content_page_module_MENU_GROUP"]) ?  preg_replace('/[^a-z0-9\-]/','',strtolower(trim($form_state["input"]["content_page_module_MENU_GROUP"]))) : "";
+    $form_state["values"]["content_page_module_MENU_GROUP"] = $newGRP;
+
+    // ============= UPDATE MENUS =============
+    $curGRP = isset($form_state["input"]["content_page_module_MENU_CRRNT"]) ? preg_replace('/[^a-z0-9\-]/','',strtolower(trim($form_state["input"]["content_page_module_MENU_CRRNT"]))) : "";
+    
+    if ($newGRP != $curGRP) {
+        $menuMLIDs = isset($form_state["input"]["content_page_module_MENU_TO_SET"]) ? strtolower(trim($form_state["input"]["content_page_module_MENU_TO_SET"])) : "";
+        $mlidArray = explode(",",$menuMLIDs);
+        foreach($mlidArray as $tmp) {
+            if (trim($tmp) != "") {
+                $mlid = intval($tmp);
+                $menu_link = menu_link_load($mlid);
+                $menu_link["link_path"] = str_replace($curGRP."/",$newGRP."/",$menu_link["link_path"]);
+                $menu_link["router_path"] = str_replace($curGRP."/",$newGRP."/",$menu_link["router_path"]);
+                $menu_link["path"] = str_replace($curGRP."/",$newGRP."/",$menu_link["path"]);
+                $menu_link["tab_root"] = str_replace($curGRP."/",$newGRP."/",$menu_link["tab_root"]);
+                $menu_link["href"] = str_replace($curGRP."/",$newGRP."/",$menu_link["href"]);
+                menu_link_save($menu_link);
+            }
+        }
+    }
+    
+    // ============= FIX FILE IN BROWSER TEXT =============
+    $types = isset($form_state["input"]["content_page_module_FILE_IN_BROWSER"]) ? strtolower(trim($form_state["input"]["content_page_module_FILE_IN_BROWSER"])) : "";
+    $space = preg_replace('/\s+/',' ',trim(preg_replace('/[^a-z0-9]/',' ',$types)));
+    $form_state["values"]["content_page_module_FILE_IN_BROWSER"] = $space;
+	
+    // ============= SET FILE UPLOAD TYPES =============
+	$types = isset($form["fieldsetFILES"]["content_page_module_FILE_UPLOAD_TYPES"]["#value"]) ? strtolower(trim($form["fieldsetFILES"]["content_page_module_FILE_UPLOAD_TYPES"]["#value"])) : "";
+	$comma = preg_replace('/\s+/',',',trim(preg_replace('/[^a-z0-9]/',' ',$types)));
+	$space = preg_replace('/\s+/',' ',trim(preg_replace('/[^a-z0-9]/',' ',$types)));
+	$instance_info = field_info_instance('node','field_content_page_physical_file','content_page_file');
+	$instance_info["settings"]["file_extensions"] = $space;
+	$instance_info["description"] = "Enabled File Types - ${comma}";
+	field_update_instance($instance_info);
+	
+}
+

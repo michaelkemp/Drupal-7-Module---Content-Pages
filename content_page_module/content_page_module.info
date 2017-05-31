@@ -1,0 +1,21 @@
+name = Content Page Module
+description = Menu & Layout Module for Content Pages
+core = 7.x
+version = 1.31
+
+dependencies[] = entityreference
+dependencies[] = features
+dependencies[] = file
+dependencies[] = image
+dependencies[] = list
+dependencies[] = options
+dependencies[] = text
+dependencies[] = youtube
+
+configure = admin/config/content/content_page_module
+
+files[] = content_page_module.module
+stylesheets[all][] = css/content_page_module.css
+
+scripts[] = js/jquery.darkbox.min.js
+stylesheets[all][] = js/jquery.darkbox.css

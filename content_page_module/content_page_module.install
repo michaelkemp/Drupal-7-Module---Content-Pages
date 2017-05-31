@@ -1,0 +1,166 @@
+<?php
+
+/* http://fredparke.com/blog/creating-content-types-and-fields-using-custom-module-drupal-7 */
+
+require_once('content_page_module.field_base.inc');
+require_once('content_page_module.field_instance.inc');
+
+
+/**
+ * Implements hook_install().
+ */
+function content_page_module_install() {
+
+    node_types_rebuild();
+    
+    foreach (_content_page_module_field_bases() as $field) {
+        field_create_field($field);
+    }
+    foreach (_content_page_module_field_instances() as $fieldinstance) {
+        field_create_instance($fieldinstance);
+    }    
+
+    // ================================ IMAGE STYLES for INSTALL ================================
+    $tmp = image_styles();
+    if (!array_key_exists("content_page_module_size",$tmp)) {
+        $style = image_style_save(array(
+            'name' => 'content_page_module_size',
+            'label' => 'Content Page Image  (960 x 540)')
+        );
+        $effect = array(
+            'name' => 'image_scale',
+            'data' => array(
+                    'width' => 960,
+                    'height' => 540,
+                    'upscale' => TRUE,
+                ),
+            'isid' => $style['isid'],
+        );
+        image_effect_save($effect);        
+    }
+    
+    if (!array_key_exists("content_page_module_size_tile",$tmp)) {
+        $style = image_style_save(array(
+            'name' => 'content_page_module_size_tile',
+            'label' => 'Content Page Image  (500 x 500)')
+        );
+        $effect = array(
+            'name' => 'image_scale_and_crop',
+            'data' => array(
+                    'width' => 500,
+                    'height' => 500,
+                    'upscale' => TRUE,
+                ),
+            'isid' => $style['isid'],
+        );
+        image_effect_save($effect);        
+    }
+    
+    if (!array_key_exists("content_page_module_size_thumb",$tmp)) {
+        $style = image_style_save(array(
+            'name' => 'content_page_module_size_thumb',
+            'label' => 'Content Page Image  (270 x 270)')
+        );
+        $effect = array(
+            'name' => 'image_scale_and_crop',
+            'data' => array(
+                    'width' => 270,
+                    'height' => 270,
+                    'upscale' => TRUE,
+                ),
+            'isid' => $style['isid'],
+        );
+        image_effect_save($effect);        
+    }
+    
+    if (!array_key_exists("content_page_module_size_wide",$tmp)) {
+        $style = image_style_save(array(
+            'name' => 'content_page_module_size_wide',
+            'label' => 'Content Page Image  (1920 x 270)')
+        );
+        $effect = array(
+            'name' => 'image_scale_and_crop',
+            'data' => array(
+                    'width' => 1920,
+                    'height' => 270,
+                    'upscale' => TRUE,
+                ),
+            'isid' => $style['isid'],
+        );
+        image_effect_save($effect);        
+    }
+
+    if (!array_key_exists("content_page_module_article_size",$tmp)) {
+        $style = image_style_save(array(
+            'name' => 'content_page_module_article_size',
+            'label' => 'Content Page Article Image (500 x ?)')
+        );
+        $effect = array(
+            'name' => 'image_scale',
+            'data' => array(
+                    'width' => 500,
+                    'upscale' => TRUE,
+                ),
+            'isid' => $style['isid'],
+        );
+        image_effect_save($effect);        
+    }
+
+
+    
+}
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function content_page_module_uninstall() {
+    $nodeids = array();
+    
+    $type1 = 'content_page';
+    $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+    $result = db_query($sql, array(':type' => $type1));
+    foreach ($result as $row) {
+        $nodeids[] = $row->nid;
+    }
+    $type2 = 'content_page_article';
+    $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+    $result = db_query($sql, array(':type' => $type2));
+    foreach ($result as $row) {
+        $nodeids[] = $row->nid;
+    }
+    $type3 = 'content_page_file';
+    $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+    $result = db_query($sql, array(':type' => $type3));
+    foreach ($result as $row) {
+        $nodeids[] = $row->nid;
+    }
+    
+    node_delete_multiple($nodeids);
+
+    foreach (array_keys(_content_page_module_field_bases()) as $field) {
+        field_delete_field($field);
+    }
+    $instances = field_info_instances('node', 'content_page');
+    foreach ($instances as $instance_name => $fieldinstance) {
+        field_delete_instance($fieldinstance);
+    }
+    $instances = field_info_instances('node', 'content_page_article');
+    foreach ($instances as $instance_name => $fieldinstance) {
+        field_delete_instance($fieldinstance);
+    }
+    $instances = field_info_instances('node', 'content_page_file');
+    foreach ($instances as $instance_name => $fieldinstance) {
+        field_delete_instance($fieldinstance);
+    }
+
+    
+    node_type_delete($type1);
+    node_type_delete($type2);
+    node_type_delete($type3);
+    field_purge_batch(500);
+    
+
+}
+
+
