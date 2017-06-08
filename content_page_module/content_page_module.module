@@ -41,8 +41,15 @@ function content_page_module_node_info() {
       'help' => '',
     ),
   );
-  drupal_alter('node_info', $items);
   return $items;
+}
+
+/**
+ * Implement hook_form()
+ */
+// ================ HOOK To ADD CONTENT FOR NEW TYPE - Feature Page ================
+function content_page_module_form($node, $form_state) {
+    return node_content_form($node, $form_state);
 }
 
 
@@ -242,7 +249,7 @@ function cpmSetMenuVariable($action,$link) {
     if ($addArray["nid"] >= 0) { $addArray["node_type"] = db_query("SELECT type FROM {node} WHERE nid = :nid", array(':nid' => $addArray["nid"]))->fetchField(); } else { $addArray["node_type"] = ""; }
 
     // ======================== BUILD MENU TREE ========================
-    menu_rebuild();
+    //menu_rebuild();
     $mainMenu = menu_build_tree("main-menu");
     $tmpArray = cpmParseMenuTree($mainMenu);
     
@@ -341,7 +348,7 @@ function content_page_module_menu() {
         'title' => 'Content Page Config',
         'description' => 'Configuration for Content Page module',
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('content_page_module_form'),
+        'page arguments' => array('cpModule_form'),
         'access arguments' => array('access administration pages'),
         'type' => MENU_NORMAL_ITEM,
     );
@@ -526,7 +533,7 @@ JS;
  * implements hook_form($form, &$form_state)
  *
 */
-function content_page_module_form($form, &$form_state) {
+function cpModule_form($form, &$form_state) {
    
     $form["fieldsetFILES"] = array(
         '#type' => 'fieldset',
@@ -685,7 +692,7 @@ function content_page_module_form($form, &$form_state) {
             );       
     
     
-    $form['#submit'][] = 'content_page_module_form_submit';
+    $form['#submit'][] = 'cpModule_form_submit';
     return system_settings_form($form);
 }
 
@@ -694,7 +701,7 @@ function content_page_module_form($form, &$form_state) {
  * implements hook_form_submit($form, &$form_state)
  *
 */
-function content_page_module_form_submit($form, &$form_state) {
+function cpModule_form_submit($form, &$form_state) {
 
     menu_rebuild();
     $mainMenu = menu_build_tree("main-menu");
@@ -710,7 +717,7 @@ function content_page_module_form_submit($form, &$form_state) {
  * implements hook_form_validate($form, &$form_state)
  *
 */
-function content_page_module_form_validate($form, &$form_state) {
+function cpModule_form_validate($form, &$form_state) {
 
     // ============= FIX MENU GROUP NAME =============
     $newGRP = isset($form_state["input"]["content_page_module_MENU_GROUP"]) ?  preg_replace('/[^a-z0-9\-]/','',strtolower(trim($form_state["input"]["content_page_module_MENU_GROUP"]))) : "";
