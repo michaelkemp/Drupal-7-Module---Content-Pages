@@ -440,7 +440,7 @@ function cpmIndex() {
                 $imgMarkupTile = "<a href='${link_path}' ${target}><img class='index_img' src='${imgSVG}' alt='${imgALT}'></a>";
             }
             
-            $outText = (trim($summary) == "") ?  text_summary($text, NULL, 256) : text_summary($summary, NULL, 256);
+            $outText = (trim($summary) == "") ?  cpmSafeSummary($text, 256) : cpmSafeSummary($summary, 256);
             $childLinks = "<ul>";
             $childCnt = 0;
             foreach($child as $kid) {
@@ -504,12 +504,16 @@ HTML;
 $js=<<<JS
     (function ($) { jQuery(document).ready(function($) {
         
-		$('#waterfall_index').waterfall({ 
-			colMinWidth: 300, 
-			defaultContainerWidth: 1140,
-			autoresize: true
-		});
+		$('#waterfall_index').waterfall({ colMinWidth: 300 });
 		
+        $(window).resize(function() { 
+            $('#waterfall_index').waterfall({ colMinWidth: 300 });
+        });
+
+        setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 500);
+        setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 1000);
+        setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 2000);
+
     }); }(jQuery));    
 JS;
 
@@ -759,3 +763,40 @@ function cpModule_form_validate($form, &$form_state) {
 	
 }
 
+function cpmSafeSummary($markup,$length) {
+
+     // REMOVE TABLES
+    $pattern = '%<table\b[^>]*+>(?:(?R)|[^<]*+(?:(?!</?table\b)<[^<]*+)*+)*+</table>%i';
+    $replace = ' ';
+    $markup = preg_replace($pattern, $replace, $markup);
+
+    // REMOVE ANCHORS
+    $markup = cpmStripSingleHTMLTags("a",$markup);
+
+    // REMOVE HEADINGS
+    $markup = cpmStripSingleHTMLTags("h1",$markup);
+    $markup = cpmStripSingleHTMLTags("h2",$markup);
+    $markup = cpmStripSingleHTMLTags("h3",$markup);
+    $markup = cpmStripSingleHTMLTags("h4",$markup);
+
+    // REMOVE STRONG
+    $markup = cpmStripSingleHTMLTags("strong",$markup);
+
+    // REMOVE NON PRINTABLE CHARACTERS
+    $markup = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $markup);
+
+    // TAKE SAMPLE OF REMAINING
+    $alter['html'] = true;
+    $alter['word_boundary'] = true;
+    $alter['ellipsis'] = true;
+    $alter['max_length'] = $length;
+    $outputTXT = views_trim_text($alter, $markup);
+    return $outputTXT;
+
+}
+
+function cpmStripSingleHTMLTags($tag,$string){
+    $string=preg_replace('/<'.$tag.'[^>]*>/i', '', $string);
+    $string=preg_replace('/<\/\s*'.$tag.'\s*>/i', '', $string);
+    return $string;
+}

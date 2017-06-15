@@ -1,7 +1,7 @@
 name = Content Page Module
 description = Menu & Layout Module for Content Pages
 core = 7.x
-version = 1.46
+version = 1.52
 
 dependencies[] = entityreference
 dependencies[] = file
@@ -9,6 +9,7 @@ dependencies[] = image
 dependencies[] = list
 dependencies[] = options
 dependencies[] = text
+dependencies[] = views
 dependencies[] = youtube
 
 configure = admin/config/content/content_page_module
