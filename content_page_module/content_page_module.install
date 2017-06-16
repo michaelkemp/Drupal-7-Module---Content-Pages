@@ -39,6 +39,23 @@ function content_page_module_install() {
         image_effect_save($effect);        
     }
     
+    if (!array_key_exists("content_page_module_size_tile_16x9",$tmp)) {
+        $style = image_style_save(array(
+            'name' => 'content_page_module_size_tile_16x9',
+            'label' => 'Content Page Image  (480 x 270)')
+        );
+        $effect = array(
+            'name' => 'image_scale',
+            'data' => array(
+                    'width' => 480,
+                    'height' => 270,
+                    'upscale' => TRUE,
+                ),
+            'isid' => $style['isid'],
+        );
+        image_effect_save($effect);        
+    }
+    
     if (!array_key_exists("content_page_module_size_tile",$tmp)) {
         $style = image_style_save(array(
             'name' => 'content_page_module_size_tile',

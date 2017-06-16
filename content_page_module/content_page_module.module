@@ -176,9 +176,9 @@ function cpmIndexFeature() {
 		$summary = isset($node->field_content_page_text[LANGUAGE_NONE][0]["summary"]) 			? $node->field_content_page_text[LANGUAGE_NONE][0]["summary"] : "";
 	
 		if ($uri != "") {
-			$url = image_style_url("content_page_module_size",$uri);
+			$url = image_style_url("content_page_module_size_tile_16x9",$uri);
 			$capTxt = ($caption != "") ? "<figcaption>${caption}</figcaption>" : "";
-			$imgMarkup = "<figure><img class='img-fluid content_page_image' src='${url}' alt='${alt}'>${capTxt}</figure>";
+			$imgMarkup = "<figure><img class='img-fluid content_page_image_feature' src='${url}' alt='${alt}'>${capTxt}</figure>";
 		} else {
 			$imgMarkup = "";
 		}
@@ -274,7 +274,7 @@ function cpmSetMenuVariable($action,$link) {
 
 }
 
-// ======================== RETURNS SIMPLE FLAT MENU TREE JSON ========================
+// ======================== RECURSIVE - RETURNS SIMPLE FLAT MENU TREE JSON ========================
 function cpmParseMenuTree($menuArray) {
     $tmp = array();
     $cnt = 0;
@@ -430,7 +430,7 @@ function cpmIndex() {
                 $imgURL = image_style_url("content_page_module_size_thumb",$uri);
                 $imgMarkupList = "<a href='${link_path}' ${target}><img class='index_img' src='${imgURL}' alt='${imgALT}'></a>";
                 
-                $imgURL = image_style_url("content_page_module_size_tile",$uri);
+                $imgURL = image_style_url("content_page_module_size_tile_16x9",$uri);
                 $imgMarkupTile = "<a href='${link_path}' ${target}><img class='index_img' src='${imgURL}' alt='${imgALT}'></a>";
                 
                 
@@ -481,7 +481,7 @@ $tile=<<<HTML
             <div class="content_index_text${noImg}">
                 <a href='${link_path}' ${target}><h3 class="content_index_text_heading">${title}</h3></a>
                 <div class="content_index_text_summary">${outText}</div>
-                <div class="content_index_text_links">${childLinks}</div>
+                <div class="content_index_text_links_tile">${childLinks}</div>
              </div>
          </div>
     </div>
@@ -503,16 +503,17 @@ HTML;
 		
 $js=<<<JS
     (function ($) { jQuery(document).ready(function($) {
-        
-		$('#waterfall_index').waterfall({ colMinWidth: 300 });
 		
+        $(window).load(function() {
+            $('#waterfall_index').waterfall({ colMinWidth: 300 });
+        });
+
         $(window).resize(function() { 
             $('#waterfall_index').waterfall({ colMinWidth: 300 });
         });
 
         setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 500);
         setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 1000);
-        setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 2000);
 
     }); }(jQuery));    
 JS;
@@ -608,10 +609,10 @@ function cpModule_form($form, &$form_state) {
             );
 	
 	
-	$result = db_query("SELECT nid, title FROM {node} WHERE (status = '1') AND (type = 'content_page')");
+	$result = db_query("SELECT nid, title FROM {node} WHERE (status = '1') AND (type = 'content_page') ORDER BY title");
 	$options = array(-1=>" --- No Featured Page --- ");
 	foreach($result as $row) {
-		$options[$row->nid] = $row->title;
+		$options[$row->nid] = $row->title . " [" .$row->nid. "]";
 	}
 	
     $json = variable_get("content_page_module_MENU_TREE", "{}");

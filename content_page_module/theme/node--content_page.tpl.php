@@ -41,10 +41,14 @@
         $mlid = -1;
         foreach($menuArray as $item) {
             if ($item["nid"] == $nid) {
-                $mlid = $item["mlid"];
+                if ($mlid == -1) {
+                    $mlid = $item["mlid"];
+                } else if ($mlid > $item["mlid"]) {
+                    $mlid = $item["mlid"];
+                }
             }
         }
-        $linkList = "<h3>Related Content</h3><ul class='content_page_article_links'>";
+        $linkList = "<h3 class='content_page_related_links_title'>Related Content</h3><ul class='content_page_related_links'>";
         $linkCnt = 0;
         foreach($menuArray as $item) {
             if ($item["plid"] == $mlid) {

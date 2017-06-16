@@ -28,6 +28,11 @@
     margin-left: -960px;    
 }
 
+.content_page_image_feature {
+    width:100%;
+    padding-bottom: 0px;
+}
+
 .content_page_image {
     width:100%;
     padding-bottom: 30px;
@@ -166,10 +171,16 @@ figcaption {
     font-size: 0.8em;
 }
 
-.content_page_article_links {
+.content_page_related_links_title {
+    padding-bottom:10px;
+}
+
+.content_page_related_links {
     font-size: 1.2em;
+    line-height: 2.0em;
     list-style: none;
     padding: 0;
+    margin-left: 1.0em;
 }
 
 /* ====================================================== */
@@ -209,7 +220,7 @@ figcaption {
 @media (max-width: 600px) { 
     .content_index_landscape .content_index_image {
         float:none; 
-        width:80%; 
+        width:100%; 
         margin: 0px auto;
     }
 
@@ -238,14 +249,37 @@ figcaption {
     -moz-column-gap: 20px; /* Firefox */
     column-gap: 20px;
 }
-.content_index_text_links li{
+.content_index_text_links li,
+.content_index_text_links_tile li{
     list-style-type: none;
     margin: 0;
     padding: 0;
 }   
-.content_index_text_links ul{
+.content_index_text_links ul,
+.content_index_text_links_tile ul{
     padding-left: 20px;
-}   
+}
+
+.index_tile {
+    padding:0px;
+    margin:10px;
+    box-shadow: 1px 2px 5px rgba(0,0,0,0.3);
+}
+
+.content_index_portrait .content_index_text {
+    padding: 0px 20px 10px 20px;
+}
+.content_index_portrait .content_index_image_noimg {
+    display:none;
+}
+.content_index_portrait .content_index_text_noimg {
+    padding: 10px;
+    margin-top: -25px;
+}
+
+#waterfall_index {
+    margin-top: 25px;
+}
 @media (max-width: 400px) { 
     .content_index_text_links {
         -webkit-column-count: 1; /* Chrome, Safari, Opera */
@@ -255,28 +289,21 @@ figcaption {
         -moz-column-gap: 0px; /* Firefox */
         column-gap: 0px;
     }
-    .content_index_text_links ul{
+    .content_index_text_links ul,
+    .content_index_text_links_tile ul{
         padding-left: 10px;
     }   
-    
+
+    .index_tile {
+        margin:10px 0px
+    }
+ 
+    #waterfall_index {
+        margin-top: 5px;
+    }
 }
 
-.index_tile {
-    padding:10px;
-    margin:10px;
-    box-shadow: 1px 2px 5px rgba(0,0,0,0.3);
-}
 
-.content_index_portrait .content_index_text {
-    padding: 10px;
-}
-.content_index_portrait .content_index_image_noimg {
-    display:none;
-}
-.content_index_portrait .content_index_text_noimg {
-    padding: 10px;
-    margin-top: -25px;
-}
 
 /*Table CSS*/
 .content_page table {
