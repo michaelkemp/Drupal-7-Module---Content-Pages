@@ -403,6 +403,47 @@ function _content_page_module_field_instances() {
   );
 
   // Exported field_instance:
+  // 'node-content_page_article-field_content_page_screen_reader'.
+  $field_instances['node-content_page_article-field_content_page_screen_reader'] = array(
+    'bundle' => 'content_page_article',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 6,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_content_page_screen_reader',
+    'label' => 'Screen Reader Text',
+    'required' => 0,
+    'settings' => array(
+      'text_processing' => 1,
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+        'rows' => 5,
+      ),
+      'type' => 'text_textarea',
+      'weight' => 8,
+    ),
+  );
+
+  // Exported field_instance:
   // 'node-content_page_article-field_content_page_article_title'.
   $field_instances['node-content_page_article-field_content_page_article_title'] = array(
     'bundle' => 'content_page_article',
@@ -542,6 +583,7 @@ function _content_page_module_field_instances() {
   t('Article Image');
   t('Article Media');
   t('Article Text');
+  t('Screen Reader Text');
   t('Article Video');
   t('Content Page Articles');
   t('Content Page Image');

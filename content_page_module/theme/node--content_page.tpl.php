@@ -6,16 +6,17 @@
     $caption = isset($variables["field_content_page_image_caption"][0]["value"]) ? trim($variables["field_content_page_image_caption"][0]["value"]) : "";
     $text = isset($variables["field_content_page_text"][0]["value"]) ? $variables["field_content_page_text"][0]["value"] : "";
     $summary = isset($variables["field_content_page_text"][0]["summary"]) ? $variables["field_content_page_text"][0]["summary"] : "";
+
     
     if (isset($content["field_content_page_text"])) {
         $content["field_content_page_text"]["#label_display"] = "hidden"; // HIDE LABEL
-        $renderText = render($content["field_content_page_text"]);
+        $renderText = "<div tabindex='0' class='content_page_text'>" . render($content["field_content_page_text"]) . "</div>";
     } else {
         $renderText = "";
     }
     
     if (isset($content["field_content_page_articles"])) {
-        $renderArticles = render($content["field_content_page_articles"]);
+        $renderArticles = "<div tabindex='0' class='content_page_articles'>" . render($content["field_content_page_articles"]) . "</div>";
     } else {
         $renderArticles = "";
     }
@@ -63,34 +64,30 @@
         }
         $linkList.= "</ul>";
         if ($linkCnt > 0) {
-            $linkMarkup = $linkList;
+            $linkMarkup = "<div tabindex='0' class='content_page_linked_pages'>${linkList}</div>";
         }
     }
 
     
 $layout0=<<<OUT
-
     <div class="content_page nid-${nid}">
         <div class="content_page_simple">
             <div class="content_page_title">
-                <h1>${title}</h1>
+                <h1 tabindex="0">${title}</h1>
             </div>
             ${imgMarkup}
             <div class="content_page_page">
-                    <div class="content_page_text">${renderText}</div>
+                ${renderText}
             </div>
-            <div class="content_page_articles">${renderArticles}</div>
-            <div class="content_page_linked_pages">${linkMarkup}</div>
+            ${renderArticles}
+            ${linkMarkup}
         </div>
-        <script>
-            jQuery(document).ready(function($) {
-                $('a[rel=darkbox]').darkbox();
-            }(jQuery)); 
-        </script>
-
-    </div>
-    
-    
+     </div>
+    <script>
+        jQuery(document).ready(function($) {
+            $('a[rel=darkbox]').darkbox();
+        }(jQuery)); 
+    </script>
 OUT;
     
 $layout1=<<<OUT
@@ -98,11 +95,11 @@ $layout1=<<<OUT
         <div class="content_page_background_column">
             <div class="content_page_background_white">
                 <div class="content_page_page">
-                    <div class="content_page_title"><h1>${title}</h1></div>
-                    <div class="content_page_text">${renderText}</div>
+                    <div class="content_page_title"><h1 tabindex="0">${title}</h1></div>
+                    ${renderText}
                 </div>
-                <div class="content_page_articles">${renderArticles}</div>
-                <div class="content_page_linked_pages">${linkMarkup}</div>
+                ${renderArticles}
+                ${linkMarkup}
             </div>
         </div>
     </div>

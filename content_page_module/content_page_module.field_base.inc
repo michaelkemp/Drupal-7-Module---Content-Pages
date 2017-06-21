@@ -118,6 +118,25 @@ function _content_page_module_field_bases() {
     'type' => 'text_long',
   );
 
+  // Exported field_base: 'field_content_page_screen_reader'.
+  $field_bases['field_content_page_screen_reader'] = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_content_page_screen_reader',
+    'indexes' => array(
+      'format' => array(
+        0 => 'format',
+      ),
+    ),
+    'locked' => 0,
+    'module' => 'text',
+    'settings' => array(),
+    'translatable' => 0,
+    'type' => 'text_long',
+  );
+
   // Exported field_base: 'field_content_page_article_title'.
   $field_bases['field_content_page_article_title'] = array(
     'active' => 1,

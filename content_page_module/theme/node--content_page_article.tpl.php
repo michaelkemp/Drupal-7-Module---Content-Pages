@@ -13,14 +13,16 @@
     
     if (isset($content["field_content_page_article_text"])) {
         $content["field_content_page_article_text"]["#label_display"] = "hidden"; // HIDE LABEL
-        $renderText = render($content["field_content_page_article_text"]);
+        $renderText = "<div tabindex='0' class='content_page_article_rendered_text'>" . render($content["field_content_page_article_text"]). "</div>";
     } else {
         $renderText = "";
     }
 
+    $readerText = isset($content["field_content_page_screen_reader"]["#items"][0]["value"]) ? "<div tabindex='0' class='content_page_article_screen_reader'>" . $content["field_content_page_screen_reader"]["#items"][0]["value"] . "</div>" : "";
+
     if ($onttl != 0) {
-        $titleAboveMarkup = "<div class='content_page_article_title content_page_article_title_above'><h3>${title}</h3></div>";
-        $titleBelowMarkup = "<h3 class='content_page_article_title content_page_article_title_below'>${title}</h3>";
+        $titleAboveMarkup = "<div class='content_page_article_title content_page_article_title_above'><h3 tabindex='0'>${title}</h3></div>";
+        $titleBelowMarkup = "<h3 tabindex='0' class='content_page_article_title content_page_article_title_below'>${title}</h3>";
     } else {
         $titleAboveMarkup = "";
         $titleBelowMarkup = "";
@@ -63,12 +65,13 @@ $layout=<<<OUT
 
     <div class='content_page_article ${classEmbed}'>
         ${titleAboveMarkup}
-            <div class='content_page_article_markup'>
+            <div tabindex='0' class='content_page_article_markup'>
                 ${mediaMarkup}
                 ${titleBelowMarkup}
                 ${renderText}
             </div>
     </div>
+    ${readerText}
     
 OUT;
 
