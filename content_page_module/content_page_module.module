@@ -74,6 +74,11 @@ function content_page_module_block_info(){
         'cache' => DRUPAL_CACHE_GLOBAL,
     );	
 	
+	$blocks['cpmScrollToTop'] = array(
+        'info' => t("Scroll to Page Top"),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+    );	
+	
     return $blocks;
 }
 
@@ -99,6 +104,10 @@ function content_page_module_block_view($block_name = ""){
         case 'cpmFileDownload':
             $block['subject'] = t("File Download");
             $block['content'] = cpmFileDownload();
+            return $block;
+        case 'cpmScrollToTop':
+            $block['subject'] = t("Scroll to Page Top");
+            $block['content'] = cpmScrollToTop();
             return $block;
 	}
 }
@@ -352,13 +361,25 @@ function content_page_module_menu() {
         'access arguments' => array('access administration pages'),
         'type' => MENU_NORMAL_ITEM,
     );
+    $items['cpm404PageNotFound'] = array(
+        'title' => 'Page Not Found',
+        'page callback' => 'cpm404PageNotFound',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+    );
+    $items['cpm403AccessDenied'] = array(
+        'title' => 'Access Denied',
+        'page callback' => 'cpm403AccessDenied',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+    );
 
     return $items;
 }
 
 function cpmIndex() {
-    
-    $svgPath = '/' . drupal_get_path('module', 'content_page_module') . '/letters';
+
+    $svgPath = url(drupal_get_path('module', 'content_page_module') . "/letters", array('alias'=>false,'absolute'=>true));
     
 	$headDisp = 0;
 	$headTitl = "";
@@ -413,7 +434,7 @@ function cpmIndex() {
         $link_title = isset($parent["link_title"]) ? $parent["link_title"] : "";
         $normal_path = isset($parent["normal_path"]) ? $parent["normal_path"] : "";
         $external = isset($parent["external"]) ? intval($parent["external"]) : 0;
-        $link_path = ($external == 0) ? "/" . drupal_get_path_alias($normal_path) : $normal_path;
+        $link_path = ($external == 0) ? url($normal_path, array('alias'=>false,'absolute'=>true)) : $normal_path;
         $target = ($external != 0) ? "target='_blank'" : "";
 
         $child = isset($parent["child"]) ? $parent["child"] : array();
@@ -447,7 +468,7 @@ function cpmIndex() {
                 $kidTitle = isset($kid["link_title"]) ? $kid["link_title"] : "";
                 $kidPath = isset($kid["normal_path"]) ? $kid["normal_path"] : "";
                 $kidExt = isset($kid["external"]) ? intval($kid["external"]) : 0;
-                $kidLink = ($kidExt == 0) ? "/" . drupal_get_path_alias($kidPath) : $kidPath;
+                $kidLink = ($kidExt == 0) ? url($kidPath, array('alias'=>false,'absolute'=>true)) : $kidPath;
                 $kidTarg = ($kidExt != 0) ? "target='_blank'" : "";
                 $childLinks.= "<li><a href='${kidLink}' ${kidTarg}>${kidTitle}</a></li>";
                 ++$childCnt;
@@ -496,10 +517,10 @@ HTML;
 	$layout = intval(variable_get('content_page_module_INDEX_LAYOUT', '0'));
 	if ($layout == 0) {
 		$contentPages.= "<div id='waterfall_index'>${tileLayout}</div>";
-		$zepto = drupal_get_path('module', 'content_page_module') . '/js/zepto.js';
-		$water = drupal_get_path('module', 'content_page_module') . '/js/jquery.waterfall.js';
-		$contentPages.= "<script src='/${zepto}'></script>";
-		$contentPages.= "<script src='/${water}'></script>";
+		$zepto = url(drupal_get_path('module', 'content_page_module') . "/js/zepto.js", array('alias'=>false,'absolute'=>true));
+		$water = url(drupal_get_path('module', 'content_page_module') . "/js/jquery.waterfall.js", array('alias'=>false,'absolute'=>true));
+		$contentPages.= "<script src='${zepto}'></script>";
+		$contentPages.= "<script src='${water}'></script>";
 		
 $js=<<<JS
     (function ($) { jQuery(document).ready(function($) {
@@ -801,3 +822,101 @@ function cpmStripSingleHTMLTags($tag,$string){
     $string=preg_replace('/<\/\s*'.$tag.'\s*>/i', '', $string);
     return $string;
 }
+
+
+function cpmScrollToTop () {
+
+    $img = url(drupal_get_path('module', 'content_page_module') . "/images/up.png", array('alias'=>false,'absolute'=>true));
+
+$js=<<<JS
+    (function ($) { jQuery(document).ready(function($) {
+        
+        $('head').append("<style id='scrollToTopCSS'></style>");
+        $('body').append("<div id='cpm-up'><img id='cpm-up-arrow' src='${img}' alt='Up arrow'></div>");
+       
+        $('#scrollToTopCSS').text('#cpm-up {position:fixed;bottom:0;right:0;width:40px;height:40px;z-index:20;} #cpm-up-arrow {opacity:0;filter:alpha(opacity=0);width:40px;height:40px;}');
+        
+        var arrowShowing = 0;
+        $(window).scroll(function(){
+            if (($(window).scrollTop() >= 500) && (!arrowShowing)) { 
+                $('#cpm-up-arrow').fadeTo('slow',0.5); $('#cpm-up-arrow').css({'cursor':'pointer'}); 
+                arrowShowing = 1; 
+            }
+            if (($(window).scrollTop() < 500) && (arrowShowing)) { 
+                $('#cpm-up-arrow').fadeTo('slow',0); $('#cpm-up-arrow').css({'cursor':'default'}); 
+                arrowShowing = 0; 
+            }
+        });
+        $('#cpm-up-arrow').click(function() { 
+            $('html, body').animate({ scrollTop: 0 }, 'slow'); 
+        });
+        
+    }); }(jQuery));
+JS;
+
+    drupal_add_js($js, 'inline');
+
+}
+
+function cpm404PageNotFound() {
+
+    $img = url(drupal_get_path('module', 'content_page_module') . "/images/brigham.svg", array('alias'=>false,'absolute'=>true));
+    $css = file_get_contents(DRUPAL_ROOT . "/" . drupal_get_path('module', 'content_page_module') . "/css/brigham.css");
+    $url = $_SERVER["REQUEST_URI"];
+
+$html=<<<HTML
+	<div  class="brigham-blue-box"> 
+		<div class="brigham-wrapper">
+			<img class="brigham-pic" src="${img}" alt="Brigham Young 'This is not the place! 404 Error'">
+			<div class="brigham-text-wrapper">
+				<p class="brigham-big-text">This is <em>NOT</em> the place</p>
+				<p class="brigham-small-text">The page [ ${url} ] could not be found. </p> 
+			</div>
+		</div>
+	</div>
+	<style>
+		${css}
+	</style>
+HTML;
+
+    $output = array (
+        '#type' => 'markup',
+        '#prefix' => '',
+        '#markup' => $html,
+        '#suffix' => '',
+        );
+    return $output;
+
+}
+
+function cpm403AccessDenied() {
+
+    $img = url(drupal_get_path('module', 'content_page_module') . "/images/brigham.svg", array('alias'=>false,'absolute'=>true));
+    $css = file_get_contents(DRUPAL_ROOT . "/" . drupal_get_path('module', 'content_page_module') . "/css/brigham.css");
+    $url = $_SERVER["REQUEST_URI"];
+
+$html=<<<HTML
+	<div  class="brigham-blue-box"> 
+		<div class="brigham-wrapper">
+			<img class="brigham-pic" src="${img}" alt="Brigham Young 'This is not the place! 403 Error'">
+			<div class="brigham-text-wrapper">
+				<p class="brigham-big-text">This is <em>NOT</em> the place</p>
+				<p class="brigham-small-text">You do not have permission to view the page [ ${url} ].</p> 
+			</div>
+		</div>
+	</div>
+	<style>
+		${css}
+	</style>
+HTML;
+
+    $output = array (
+        '#type' => 'markup',
+        '#prefix' => '',
+        '#markup' => $html,
+        '#suffix' => '',
+        );
+    return $output;
+
+}
+
