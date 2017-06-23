@@ -65,7 +65,7 @@ $layout=<<<OUT
 
     <div class='content_page_article ${classEmbed}'>
         ${titleAboveMarkup}
-            <div tabindex='0' class='content_page_article_markup'>
+            <div class='content_page_article_markup'>
                 ${mediaMarkup}
                 ${titleBelowMarkup}
                 ${renderText}

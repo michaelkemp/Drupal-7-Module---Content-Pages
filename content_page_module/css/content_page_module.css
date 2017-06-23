@@ -403,4 +403,14 @@ figcaption {
     font-style: normal;
 }
 
+.content_page_article_rendered_text,
+.content_page_article_screen_reader,
+.content_page_article_title,
+.content_page_article_title > h3,
+.content_page_text,
+.content_page_linked_pages,
+.content_page_title,
+.content_page_title > h1 {
+    outline: none;
+}
 

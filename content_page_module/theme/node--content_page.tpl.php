@@ -16,7 +16,7 @@
     }
     
     if (isset($content["field_content_page_articles"])) {
-        $renderArticles = "<div tabindex='0' class='content_page_articles'>" . render($content["field_content_page_articles"]) . "</div>";
+        $renderArticles = "<div class='content_page_articles'>" . render($content["field_content_page_articles"]) . "</div>";
     } else {
         $renderArticles = "";
     }
