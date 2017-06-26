@@ -1,7 +1,7 @@
 name = Content Page Module
 description = Menu & Layout Module for Content Pages
 core = 7.x
-version = 1.84
+version = 1.91
 
 dependencies[] = entityreference
 dependencies[] = file

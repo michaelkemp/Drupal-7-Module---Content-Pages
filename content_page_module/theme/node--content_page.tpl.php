@@ -56,7 +56,7 @@
                 $link_title = isset($item["link_title"]) ? trim($item["link_title"]) : "";
                 $normal_path = isset($item["normal_path"]) ? trim($item["normal_path"]) : "";
                 $external = isset($item["external"]) ? intval($item["external"]) : 0;
-                $link_path = ($external == 0) ? "/" . drupal_get_path_alias($normal_path) : $normal_path;
+                $link_path = ($external == 0) ? url($normal_path, array('alias'=>false,'absolute'=>true)) : $normal_path;
                 $target = ($external != 0) ? "target='_blank'" : "";
                 $linkList.= "<li><a href='${link_path}' ${target}>${link_title}</a></li>";
                 ++$linkCnt;

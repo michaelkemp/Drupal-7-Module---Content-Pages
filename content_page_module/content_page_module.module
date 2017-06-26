@@ -379,7 +379,8 @@ function content_page_module_menu() {
 
 function cpmIndex() {
 
-    $svgPath = url(drupal_get_path('module', 'content_page_module') . "/letters", array('alias'=>false,'absolute'=>true));
+	global $base_url;
+    $svgPath = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/letters";
     
 	$headDisp = 0;
 	$headTitl = "";
@@ -517,8 +518,9 @@ HTML;
 	$layout = intval(variable_get('content_page_module_INDEX_LAYOUT', '0'));
 	if ($layout == 0) {
 		$contentPages.= "<div id='waterfall_index'>${tileLayout}</div>";
-		$zepto = url(drupal_get_path('module', 'content_page_module') . "/js/zepto.js", array('alias'=>false,'absolute'=>true));
-		$water = url(drupal_get_path('module', 'content_page_module') . "/js/jquery.waterfall.js", array('alias'=>false,'absolute'=>true));
+
+		$zepto = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/js/zepto.js";
+		$water = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/js/jquery.waterfall.js";
 		$contentPages.= "<script src='${zepto}'></script>";
 		$contentPages.= "<script src='${water}'></script>";
 		
@@ -825,8 +827,8 @@ function cpmStripSingleHTMLTags($tag,$string){
 
 
 function cpmScrollToTop () {
-
-    $img = url(drupal_get_path('module', 'content_page_module') . "/images/up.png", array('alias'=>false,'absolute'=>true));
+	global $base_url;
+    $img = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/images/up.png";
 
 $js=<<<JS
     (function ($) { jQuery(document).ready(function($) {
@@ -860,7 +862,8 @@ JS;
 
 function cpm404PageNotFound() {
 
-    $img = url(drupal_get_path('module', 'content_page_module') . "/images/brigham.svg", array('alias'=>false,'absolute'=>true));
+	global $base_url;
+    $img = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/images/brigham.svg";
     $css = file_get_contents(DRUPAL_ROOT . "/" . drupal_get_path('module', 'content_page_module') . "/css/brigham.css");
     $url = $_SERVER["REQUEST_URI"];
 
@@ -891,8 +894,8 @@ HTML;
 
 function cpm403AccessDenied() {
 
-    $img = url(drupal_get_path('module', 'content_page_module') . "/images/brigham.svg", array('alias'=>false,'absolute'=>true));
-    $css = file_get_contents(DRUPAL_ROOT . "/" . drupal_get_path('module', 'content_page_module') . "/css/brigham.css");
+	global $base_url;
+    $img = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/images/brigham.svg";
     $url = $_SERVER["REQUEST_URI"];
 
 $html=<<<HTML
