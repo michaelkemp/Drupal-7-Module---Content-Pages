@@ -495,7 +495,7 @@ $list=<<<HTML
          </div>
     </div>
 HTML;
-
+    
 $tile=<<<HTML
     <div class='index_tile'>
         <div class="content_index_portrait">
@@ -517,7 +517,7 @@ HTML;
     
 	$layout = intval(variable_get('content_page_module_INDEX_LAYOUT', '0'));
 	if ($layout == 0) {
-		$contentPages.= "<div id='waterfall_index'>${tileLayout}</div>";
+		$contentPages.= "<div id='waterfall_index' class='hidden'>${tileLayout}</div>";
 
 		$zepto = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/js/zepto.js";
 		$water = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/js/jquery.waterfall.js";
@@ -534,6 +534,8 @@ $js=<<<JS
         $(window).resize(function() { 
             $('#waterfall_index').waterfall({ colMinWidth: 300 });
         });
+
+        $('#waterfall_index').removeClass('hidden');
 
         setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 500);
         setTimeout(function() { $('#waterfall_index').waterfall({ colMinWidth: 300 }); }, 1000);
@@ -794,6 +796,10 @@ function cpmSafeSummary($markup,$length) {
     $replace = ' ';
     $markup = preg_replace($pattern, $replace, $markup);
 
+    // REMOVE NON BREAKING SPACES AND HTML ENTITIES
+    $markup = str_replace("&nbsp;", " ", $markup);
+    $markup = html_entity_decode($markup);
+
     // REMOVE ANCHORS
     $markup = cpmStripSingleHTMLTags("a",$markup);
 
@@ -805,6 +811,11 @@ function cpmSafeSummary($markup,$length) {
 
     // REMOVE STRONG
     $markup = cpmStripSingleHTMLTags("strong",$markup);
+
+    // REMOVE LISTS
+    $markup = cpmStripSingleHTMLTags("ol",$markup);
+    $markup = cpmStripSingleHTMLTags("ul",$markup);
+    $markup = cpmStripSingleHTMLTags("li",$markup);
 
     // REMOVE NON PRINTABLE CHARACTERS
     $markup = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $markup);

@@ -21,11 +21,9 @@
     $readerText = isset($content["field_content_page_screen_reader"]["#items"][0]["value"]) ? "<div tabindex='0' class='content_page_article_screen_reader'>" . $content["field_content_page_screen_reader"]["#items"][0]["value"] . "</div>" : "";
 
     if ($onttl != 0) {
-        $titleAboveMarkup = "<div class='content_page_article_title content_page_article_title_above'><h3 tabindex='0'>${title}</h3></div>";
-        $titleBelowMarkup = "<h3 tabindex='0' class='content_page_article_title content_page_article_title_below'>${title}</h3>";
+        $titleMarkup = "<div class='content_page_article_title'><h3 tabindex='0'>${title}</h3></div>";
     } else {
-        $titleAboveMarkup = "";
-        $titleBelowMarkup = "";
+        $titleMarkup = "";
     }
     
     switch($dsign) {
@@ -47,7 +45,7 @@
     
     if ($vid != "") {
         $capTxt = ($caption != "") ? "<figcaption>${caption}</figcaption>" : "";
-        $vidMarkup = "<div class='${classMed}'><figure><div class='content_page_article_video'><iframe width='560' height='349' src='http://www.youtube.com/embed/${vid}?rel=0&hd=1' frameborder='0' allowfullscreen></iframe></div>${capTxt}</figure></div>";
+        $vidMarkup = "<div class='${classMed}'><figure><div class='content_page_article_video'><iframe width='560' height='349' src='//www.youtube.com/embed/${vid}?rel=0&hd=1' frameborder='0' allowfullscreen></iframe></div>${capTxt}</figure></div>";
     } else {
         $vidMarkup = "";
     }
@@ -60,20 +58,42 @@
         default:  $mediaMarkup = "";          break;
     }
     
-    
-$layout=<<<OUT
-
+$layNOMedia=<<<OUT
     <div class='content_page_article ${classEmbed}'>
-        ${titleAboveMarkup}
+        ${titleMarkup}
+        <div class='content_page_article_markup'>
+            ${renderText}
+        </div>
+    </div>
+    ${readerText}
+OUT;
+
+$layUPMedia=<<<OUT
+    <div class='content_page_article ${classEmbed}'>
+        ${titleMarkup}
+        <div class='content_page_article_markup'>
+            ${mediaMarkup}
+            ${renderText}
+        </div>
+    </div>
+    ${readerText}
+OUT;
+
+$laySDMedia=<<<OUT
+    <div class='content_page_article ${classEmbed}'>
+        ${titleMarkup}
             <div class='content_page_article_markup'>
                 ${mediaMarkup}
-                ${titleBelowMarkup}
                 ${renderText}
             </div>
     </div>
     ${readerText}
-    
 OUT;
 
-    echo $layout;
+    switch($dsign) {
+        case 1:  echo $layUPMedia; break; // TOP
+        case 2:  echo $laySDMedia; break; // LHS
+        case 3:  echo $laySDMedia; break; // RHS
+        default: echo $layNOMedia; break; // NO MEDIA
+    }
     
