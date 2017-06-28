@@ -28,11 +28,20 @@
     margin-left: -960px;    
 }
 
+.content_page_figure_feature figcaption {
+    margin-top: -15px;
+    height: 25px;
+}
 .content_page_image_feature {
     width:100%;
-    padding-bottom: 0px;
+    padding-bottom: 20px;
 }
 
+
+.content_page_figure figcaption {
+    margin-top: -25px;
+    height: 35px;
+}
 .content_page_image {
     width:100%;
     padding-bottom: 30px;
@@ -181,7 +190,7 @@ figcaption {
 
 .content_page_module_index_feature {
     max-width: 450px;
-    margin: 70px auto 20px auto;
+    margin: 45px auto 20px auto;
 }
 
 /* ====================================================== */
@@ -370,6 +379,9 @@ figcaption {
     background-color: #337ab7;
     font-weight: 100;
     font-style: normal;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .content_page a:hover u strong em, 
@@ -383,6 +395,9 @@ figcaption {
     background-color: #337ab7;
     font-weight: 100;
     font-style: normal;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .content_page_article_rendered_text,

@@ -24,7 +24,7 @@
     if ($uri != "") {
         $url = image_style_url("content_page_module_size",$uri);
         $capTxt = ($caption != "") ? "<figcaption>${caption}</figcaption>" : "";
-        $imgMarkup = "<figure><img class='img-fluid content_page_image' src='${url}' alt='${alt}'>${capTxt}</figure>";
+        $imgMarkup = "<figure class='content_page_figure'><img class='img-fluid content_page_image' src='${url}' alt='${alt}'>${capTxt}</figure>";
         
         $url = image_style_url("content_page_module_size_wide",$uri);
         $imgWideMarkup = "<div class='content_page_hero_break'><img class='content_page_image_wide' src='${url}'></div>";
