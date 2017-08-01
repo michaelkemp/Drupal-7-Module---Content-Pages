@@ -9,7 +9,7 @@
     
     $onttl = isset($variables["field_content_page_article_title"][0]["value"]) ? intval($variables["field_content_page_article_title"][0]["value"]) : 0; // 0=nul 1=dip
     $media = isset($variables["field_content_page_article_media"][0]["value"]) ? intval($variables["field_content_page_article_media"][0]["value"]) : 0; // 0=nul 1=img 2=vid
-    $dsign = isset($variables["field_content_page_article_dsign"][0]["value"]) ? intval($variables["field_content_page_article_dsign"][0]["value"]) : 0; // 0=nul 1=top 2=lhs 3=rhs
+    $dsign = isset($variables["field_content_page_article_dsign"][0]["value"]) ? intval($variables["field_content_page_article_dsign"][0]["value"]) : 0; // 0=nul 1=top 2=lhs 3=rhs 4=dot
     
     if (isset($content["field_content_page_article_text"])) {
         $content["field_content_page_article_text"]["#label_display"] = "hidden"; // HIDE LABEL
@@ -31,6 +31,7 @@
         case 1:  $classMed = "content_page_article_media_top"; $classEmbed = "content_page_article_notembed"; break;
         case 2:  $classMed = "content_page_article_media_lhs"; $classEmbed = "content_page_article_embedded"; break;
         case 3:  $classMed = "content_page_article_media_rhs"; $classEmbed = "content_page_article_embedded"; break;
+        case 4:  $classMed = "content_page_article_media_dot"; $classEmbed = "content_page_article_bltdlist"; break;
         default: $classMed = "content_page_article_media_nul"; $classEmbed = "content_page_article_notembed"; break;
     }
     
@@ -58,6 +59,15 @@
         default:  $mediaMarkup = "";          break;
     }
     
+    if ($dsign == 4) { // DOT or BULLET Layout
+        if ($uri != "") {
+            $url = image_style_url("content_page_module_size_tile",$uri);
+            $mediaMarkup = "<div class='${classMed}'><img class='img-fluid content_page_article_image_bullet' src='${url}' alt='${alt}'></a></div>";
+        } else {
+            $mediaMarkup = "";
+        }
+    }
+
 $layNOMedia=<<<OUT
     <div class='content_page_article ${classEmbed}'>
         ${titleMarkup}
@@ -90,10 +100,22 @@ $laySDMedia=<<<OUT
     ${readerText}
 OUT;
 
+$layDTMedia=<<<OUT
+    <div class='content_page_article ${classEmbed}'>
+        <div class='content_page_article_bullet_image'>${mediaMarkup}</div>
+        <div class='content_page_article_markup_bullet'>
+            ${titleMarkup}
+            ${renderText}
+        </div>
+    </div>
+    ${readerText}
+OUT;
+
     switch($dsign) {
         case 1:  echo $layUPMedia; break; // TOP
         case 2:  echo $laySDMedia; break; // LHS
         case 3:  echo $laySDMedia; break; // RHS
+        case 4:  echo $layDTMedia; break; // DOT
         default: echo $layNOMedia; break; // NO MEDIA
     }
     

@@ -414,3 +414,35 @@ figcaption {
 .hidden {
     display:none;
 }
+
+/* ========================== BULLETS ========================== */
+.content_page_article_bltdlist {
+    min-height: 220px;
+    margin-bottom: 30px;
+}
+.content_page_article_bullet_image {
+    float:left;
+    margin-right: 30px;
+    width:220px;
+}
+.content_page_article_image_bullet {
+    width:220px;
+    height:220px;
+    border-radius:50%;
+}
+.content_page_article_markup_bullet {
+    display: block;
+    overflow: hidden;
+}
+@media (max-width: 768px) {
+    .content_page_article_bullet_image {
+        float:none;
+        margin:0 auto;
+    }
+    .content_page_article_markup_bullet {
+        padding: 30px 20px 0px 20px;
+    }
+    .content_page_article_markup_bullet .content_page_article_title {
+        text-align: center;
+    }
+}

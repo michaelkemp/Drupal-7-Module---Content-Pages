@@ -44,6 +44,7 @@ function _content_page_module_field_bases() {
         1 => 'Media Above Text',
         2 => 'Media Embedded Left',
         3 => 'Media Embedded Right',
+        4 => 'Image Bullet',
       ),
       'allowed_values_function' => '',
     ),
