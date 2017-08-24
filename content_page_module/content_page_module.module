@@ -47,11 +47,29 @@ function content_page_module_node_info() {
 /**
  * Implement hook_form()
  */
-// ================ HOOK To ADD CONTENT FOR NEW TYPE - Feature Page ================
+// ================ HOOK To ADD CONTENT FOR NEW TYPE ================
 function content_page_module_form($node, $form_state) {
     return node_content_form($node, $form_state);
 }
 
+/**
+ * Implement hook_form_alter(&$form, &$form_state, $form_id)
+ */
+// ================ HOOK To ALTER FORM - Make Text not a required Field (use validation to check that summary exists) ================
+function content_page_module_form_alter(&$form, &$form_state, $form_id) {
+    if ($form_id == "content_page_node_form") {
+        $form['field_content_page_text'][LANGUAGE_NONE][0]["#required"] = false;
+        $form['#validate'][] = 'content_page_module_form_validate';
+    }
+    
+}
+function content_page_module_form_validate($form, &$form_state) {
+    $summary = isset($form_state["values"]["field_content_page_text"][LANGUAGE_NONE][0]["summary"]) ? $form_state["values"]["field_content_page_text"][LANGUAGE_NONE][0]["summary"] : "";
+    $text    = isset($form_state["values"]["field_content_page_text"][LANGUAGE_NONE][0]["value"])   ? $form_state["values"]["field_content_page_text"][LANGUAGE_NONE][0]["value"] : "";
+    if (trim($text.$summary) == "") {
+        form_set_error("field_content_page_text][und][0][value", t("You MUST have either 'Content Page Text' or a 'Summary'"));
+    }
+}
 
 
 // =========================== BLOCKS =========================== 
