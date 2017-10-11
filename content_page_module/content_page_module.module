@@ -97,8 +97,15 @@ function content_page_module_block_info(){
         'cache' => DRUPAL_CACHE_GLOBAL,
     );	
 	
+	$blocks['cpmFacebookComments'] = array(
+        'info' => t("Facebook Comments Block"),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+    );	
+	
     return $blocks;
 }
+
+
 
 /**
  *  Implements hook_block_view().
@@ -126,6 +133,10 @@ function content_page_module_block_view($block_name = ""){
         case 'cpmScrollToTop':
             $block['subject'] = t("Scroll to Page Top");
             $block['content'] = cpmScrollToTop();
+            return $block;
+        case 'cpmFacebookComments':
+            $block['subject'] = t("Facebook Comments Block");
+            $block['content'] = cpmFacebookComments();
             return $block;
 	}
 }
@@ -961,3 +972,24 @@ HTML;
 
 }
 
+function cpmFacebookComments(){
+    global $base_url;
+    
+    $current_path = current_path();
+    $path = explode('/', $current_path);
+
+    $html = "";
+    $html .= "<div class='questions-div'>";
+    $html .= "<h3>Questions</h3>";
+    $html .= "<div class='fb-comments' data-href='${base_url}/${current_path}' data-width='100%' data-num-posts='10'></div>";
+    $html .= "</div>";
+    
+    $output = array (
+        '#type' => 'markup',
+        '#prefix' => '',
+        '#markup' => $html,
+        '#suffix' => '',
+        );
+    return $output;     
+
+}
