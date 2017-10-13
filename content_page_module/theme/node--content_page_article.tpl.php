@@ -46,7 +46,7 @@
     
     if ($vid != "") {
         $capTxt = ($caption != "") ? "<figcaption>${caption}</figcaption>" : "";
-        $vidMarkup = "<div class='${classMed}'><figure><div class='content_page_article_video'><iframe width='560' height='349' src='//www.youtube.com/embed/${vid}?rel=0&hd=1' frameborder='0' allowfullscreen></iframe></div>${capTxt}</figure></div>";
+        $vidMarkup = "<div class='${classMed}'><figure><div class='content_page_article_video'><iframe width='560' height='349' src='//www.youtube.com/embed/${vid}?autohide=1&showinfo=0&rel=0&hd=1' frameborder='0' allowfullscreen></iframe></div>${capTxt}</figure></div>";
     } else {
         $vidMarkup = "";
     }
