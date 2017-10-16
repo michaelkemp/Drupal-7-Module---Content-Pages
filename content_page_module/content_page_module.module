@@ -869,8 +869,8 @@ function cpmSafeSummary($markup,$length) {
 }
 
 function cpmStripSingleHTMLTags($tag,$string){
-    $string=preg_replace('/<'.$tag.'[^>]*>/i', '', $string);
-    $string=preg_replace('/<\/\s*'.$tag.'\s*>/i', '', $string);
+    $string=preg_replace('/<'.$tag.'[^>]*>/i', ' ', $string);
+    $string=preg_replace('/<\/\s*'.$tag.'\s*>/i', ' ', $string);
     return $string;
 }
 
