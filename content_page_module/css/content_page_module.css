@@ -358,7 +358,8 @@ figcaption {
 .content_page h6 {
     margin:0;
 }
-.content_page_text {
+.content_page_text,
+.content_page_article_rendered_text {
     line-height: 26px;
 }
 /*Header*/
