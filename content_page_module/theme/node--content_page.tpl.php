@@ -4,13 +4,18 @@
     $uri = isset($variables["field_content_page_image"][0]["uri"]) ? $variables["field_content_page_image"][0]["uri"] : "";
     $alt = isset($variables["field_content_page_image"][0]["alt"]) ? $variables["field_content_page_image"][0]["alt"] : "";
     $caption = isset($variables["field_content_page_image_caption"][0]["value"]) ? trim($variables["field_content_page_image_caption"][0]["value"]) : "";
-    $text = isset($variables["field_content_page_text"][0]["value"]) ? $variables["field_content_page_text"][0]["value"] : "";
+    $text = isset($variables["field_content_page_text"][0]["value"]) ? trim($variables["field_content_page_text"][0]["value"]) : "";
     $summary = isset($variables["field_content_page_text"][0]["summary"]) ? $variables["field_content_page_text"][0]["summary"] : "";
 
+	$layout = intval(variable_get('content_page_module_PAGE_LAYOUT', '0'));
     
-    if (isset($content["field_content_page_text"])) {
+    if ($text != "") {
         $content["field_content_page_text"]["#label_display"] = "hidden"; // HIDE LABEL
-        $renderText = "<div tabindex='0' class='content_page_text'>" . render($content["field_content_page_text"]) . "</div>";
+        if ($layout == 0) {
+            $renderText = "<div class='content_page_page'><div tabindex='0' class='content_page_text'>" . render($content["field_content_page_text"]) . "</div></div>";
+        } else {
+            $renderText = "<div tabindex='0' class='content_page_text'>" . render($content["field_content_page_text"]) . "</div>";
+        }
     } else {
         $renderText = "";
     }
@@ -72,13 +77,9 @@
 $layout0=<<<OUT
     <div class="content_page nid-${nid}">
         <div class="content_page_simple">
-            <div class="content_page_title">
-                <h1 tabindex="0">${title}</h1>
-            </div>
+            <div class="content_page_title"><h1 tabindex="0">${title}</h1></div>
             ${imgMarkup}
-            <div class="content_page_page">
-                ${renderText}
-            </div>
+            ${renderText}
             ${renderArticles}
             ${linkMarkup}
         </div>
@@ -112,7 +113,6 @@ $layout1=<<<OUT
     </script>
 OUT;
     
-    $layout = intval(variable_get('content_page_module_PAGE_LAYOUT', '0'));
     switch($layout) {
         case 0:  echo $layout0; break;
         case 1:  echo $layout1; break;

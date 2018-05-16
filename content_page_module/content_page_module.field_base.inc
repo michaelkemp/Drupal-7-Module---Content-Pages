@@ -45,6 +45,8 @@ function _content_page_module_field_bases() {
         2 => 'Media Embedded Left',
         3 => 'Media Embedded Right',
         4 => 'Image Bullet',
+        5 => 'Checklist - Essential',
+        6 => 'Checklist - Optional',
       ),
       'allowed_values_function' => '',
     ),

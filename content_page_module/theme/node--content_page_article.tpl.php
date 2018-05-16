@@ -9,7 +9,7 @@
     
     $onttl = isset($variables["field_content_page_article_title"][0]["value"]) ? intval($variables["field_content_page_article_title"][0]["value"]) : 0; // 0=nul 1=dip
     $media = isset($variables["field_content_page_article_media"][0]["value"]) ? intval($variables["field_content_page_article_media"][0]["value"]) : 0; // 0=nul 1=img 2=vid
-    $dsign = isset($variables["field_content_page_article_dsign"][0]["value"]) ? intval($variables["field_content_page_article_dsign"][0]["value"]) : 0; // 0=nul 1=top 2=lhs 3=rhs 4=dot
+    $dsign = isset($variables["field_content_page_article_dsign"][0]["value"]) ? intval($variables["field_content_page_article_dsign"][0]["value"]) : 0; // 0=nul 1=top 2=lhs 3=rhs 4=dot 5=ckE 6=ckO
     
     if (isset($content["field_content_page_article_text"])) {
         $content["field_content_page_article_text"]["#label_display"] = "hidden"; // HIDE LABEL
@@ -20,18 +20,14 @@
 
     $readerText = isset($content["field_content_page_screen_reader"]["#items"][0]["value"]) ? "<div tabindex='0' class='content_page_article_screen_reader'>" . $content["field_content_page_screen_reader"]["#items"][0]["value"] . "</div>" : "";
 
-    if ($onttl != 0) {
-        $titleMarkup = "<div class='content_page_article_title'><h3 tabindex='0'>${title}</h3></div>";
-    } else {
-        $titleMarkup = "";
-    }
-    
     switch($dsign) {
         case 0:  $classMed = "content_page_article_media_nul"; $classEmbed = "content_page_article_notembed"; break;
         case 1:  $classMed = "content_page_article_media_top"; $classEmbed = "content_page_article_notembed"; break;
         case 2:  $classMed = "content_page_article_media_lhs"; $classEmbed = "content_page_article_embedded"; break;
         case 3:  $classMed = "content_page_article_media_rhs"; $classEmbed = "content_page_article_embedded"; break;
         case 4:  $classMed = "content_page_article_media_dot"; $classEmbed = "content_page_article_bltdlist"; break;
+        case 5:  $classMed = "content_page_article_media_ess"; $classEmbed = "content_page_article_checklst"; $titleTxt = ($caption == "") ? 'This item is required for most students.' : strip_tags(str_replace("'","",$caption)); break;
+        case 6:  $classMed = "content_page_article_media_opt"; $classEmbed = "content_page_article_checklst"; $titleTxt = ($caption == "") ? 'This item is recommended.'                : strip_tags(str_replace("'","",$caption)); break;
         default: $classMed = "content_page_article_media_nul"; $classEmbed = "content_page_article_notembed"; break;
     }
     
@@ -53,23 +49,38 @@
     
     
     switch($media) {
-        case 0:   $mediaMarkup = "";          break;
-        case 1:   $mediaMarkup = $imgMarkup;  break;
-        case 2:   $mediaMarkup = $vidMarkup;  break;
-        default:  $mediaMarkup = "";          break;
+        case 0:   $mediaMarkup = "";            $titleClass="noMedia";          break;
+        case 1:   $mediaMarkup = $imgMarkup;    $titleClass="isMedia-${dsign}"; break;
+        case 2:   $mediaMarkup = $vidMarkup;    $titleClass="isMedia-${dsign}"; break;
+        default:  $mediaMarkup = "";            $titleClass="noMedia";          break;
     }
     
     if ($dsign == 4) { // DOT or BULLET Layout
         if ($uri != "") {
             $url = image_style_url("content_page_module_size_tile",$uri);
-            $mediaMarkup = "<div class='${classMed}'><img class='img-fluid content_page_article_image_bullet' src='${url}' alt='${alt}'></a></div>";
+            $mediaMarkup = "<div class='${classMed}'><img class='img-fluid content_page_article_image_bullet' src='${url}' alt='${alt}'></div>";
         } else {
             $mediaMarkup = "";
         }
     }
 
+    if ($dsign == 5)  { // Essential Checklist
+        $mediaMarkup = "<div class='${classMed}'><i class='fa fa-check' aria-hidden='true' title='${titleTxt}'></i></div>";
+    }
+    if ($dsign == 6)  { // Optional Checklist
+        $mediaMarkup = "<div class='${classMed}'><i class='fa fa-info' aria-hidden='true' title='${titleTxt}'></i></div>";
+    }
+
+    if ($onttl != 0) {
+        $titleMarkup = "<div class='content_page_article_title'><h3 tabindex='0' class='${titleClass}'>${title}</h3></div>";
+    } else {
+        $titleMarkup = "";
+    }
+
+
 $layNOMedia=<<<OUT
-    <div class='content_page_article ${classEmbed}'>
+	<a name='article-${nid}'></a>
+    <div id='article-${nid}' class='content_page_article ${classEmbed}'>
         ${titleMarkup}
         <div class='content_page_article_markup'>
             ${renderText}
@@ -79,7 +90,8 @@ $layNOMedia=<<<OUT
 OUT;
 
 $layUPMedia=<<<OUT
-    <div class='content_page_article ${classEmbed}'>
+	<a name='article-${nid}'></a>
+    <div id='article-${nid}' class='content_page_article ${classEmbed}'>
         ${titleMarkup}
         <div class='content_page_article_markup'>
             ${mediaMarkup}
@@ -90,7 +102,8 @@ $layUPMedia=<<<OUT
 OUT;
 
 $laySDMedia=<<<OUT
-    <div class='content_page_article ${classEmbed}'>
+	<a name='article-${nid}'></a>
+    <div id='article-${nid}' class='content_page_article ${classEmbed}'>
         ${titleMarkup}
             <div class='content_page_article_markup'>
                 ${mediaMarkup}
@@ -101,9 +114,22 @@ $laySDMedia=<<<OUT
 OUT;
 
 $layDTMedia=<<<OUT
-    <div class='content_page_article ${classEmbed}'>
+    <a name='article-${nid}'></a>
+    <div id='article-${nid}' class='content_page_article ${classEmbed}'>
         <div class='content_page_article_bullet_image'>${mediaMarkup}</div>
         <div class='content_page_article_markup_bullet'>
+            ${titleMarkup}
+            ${renderText}
+        </div>
+    </div>
+    ${readerText}
+OUT;
+
+$layCKMedia=<<<OUT
+    <a name='article-${nid}'></a>
+    <div id='article-${nid}' class='content_page_article ${classEmbed}'>
+        <div class='content_page_article_checklist_image'>${mediaMarkup}</div>
+        <div class='content_page_article_markup_checklist'>
             ${titleMarkup}
             ${renderText}
         </div>
@@ -116,6 +142,8 @@ OUT;
         case 2:  echo $laySDMedia; break; // LHS
         case 3:  echo $laySDMedia; break; // RHS
         case 4:  echo $layDTMedia; break; // DOT
+        case 5:  echo $layCKMedia; break; // CHK
+        case 6:  echo $layCKMedia; break; // CHK
         default: echo $layNOMedia; break; // NO MEDIA
     }
     

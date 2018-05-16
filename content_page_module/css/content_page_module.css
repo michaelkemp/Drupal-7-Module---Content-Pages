@@ -195,7 +195,7 @@ figcaption {
 /* ====================================================== */
 .index_img {
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
 }
 .content_index_landscape {
     margin: 10px;
@@ -263,7 +263,7 @@ figcaption {
     padding:0px;
     margin:10px;
     box-shadow: 1px 2px 5px rgba(0,0,0,0.3);
-    max-width: 600px;
+    max-width: 800px;
 }
 
 .content_index_portrait .content_index_text {
@@ -327,8 +327,8 @@ figcaption {
     font-style: normal;
     background-color: #002255;
     color: white;
-    width:100%;
 }
+
 .content_page tr{
     border-top: thin solid #ebebeb;
     background-color: #fff;
@@ -348,6 +348,10 @@ figcaption {
 /*content_page*/
 .content_page p {
     margin: 1em 0;
+}
+
+.content_page_article_title > .noMedia {
+    margin: 20px 0px 10px 0px;
 }
 
 .content_page h1, 
@@ -417,17 +421,19 @@ figcaption {
 
 /* ========================== BULLETS ========================== */
 .content_page_article_bltdlist {
-    min-height: 220px;
+    min-height: 150px;
     margin-bottom: 30px;
+    border-top: 1px solid #ddd;
+    padding-top: 35px;
 }
 .content_page_article_bullet_image {
     float:left;
     margin-right: 30px;
-    width:220px;
+    width:150px;
 }
 .content_page_article_image_bullet {
-    width:220px;
-    height:220px;
+    width:150px;
+    height:150px;
     border-radius:50%;
 }
 .content_page_article_markup_bullet {
@@ -443,6 +449,55 @@ figcaption {
         padding: 30px 20px 0px 20px;
     }
     .content_page_article_markup_bullet .content_page_article_title {
+        text-align: center;
+    }
+}
+
+
+/* ========================== CHECKLISTS ========================== */
+.content_page_article_checklst {
+    min-height: 150px;
+    margin-bottom: 30px;
+    border-top: 1px solid #ddd;
+    padding-top: 35px;
+}
+.content_page_article_checklist_image {
+    float:left;
+    margin-right: 20px;
+    width:40px;
+}
+.content_page_article_markup_checklist {
+    display: block;
+    overflow: hidden;
+}
+
+.content_page_article_media_ess, .content_page_article_media_opt {
+    font-size: 30px;
+    line-height: 35px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    text-align: center;
+    color: #fff;
+}
+
+.content_page_article_media_ess {
+    background-color: #5F7C9B;
+}
+.content_page_article_media_opt {
+    background-color: #84DCB4;
+    padding-left: 1px;
+}
+
+@media (max-width: 768px) {
+    .content_page_article_checklist_image {
+        float:none;
+        margin:0 auto;
+    }
+    .content_page_article_markup_checklist {
+        padding: 30px 20px 0px 20px;
+    }
+    .content_page_article_markup_checklist .content_page_article_title {
         text-align: center;
     }
 }

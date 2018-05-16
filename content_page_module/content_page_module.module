@@ -102,6 +102,16 @@ function content_page_module_block_info(){
         'cache' => DRUPAL_CACHE_GLOBAL,
     );	
 	
+	$blocks['cpmForceParent'] = array(
+        'info' => t("Redirect Article to Parent"),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+    );	
+	
+	$blocks['cpmBlockGoogle'] = array(
+        'info' => t("Add NOINDEX and NOFOLLOW META Tags"),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+    );	
+	
     return $blocks;
 }
 
@@ -138,7 +148,47 @@ function content_page_module_block_view($block_name = ""){
             $block['subject'] = t("Facebook Comments Block");
             $block['content'] = cpmFacebookComments();
             return $block;
+        case 'cpmForceParent':
+            $block['subject'] = t("Redirect Article to Parent");
+            $block['content'] = cpmForceParent();
+            return $block;
+        case 'cpmBlockGoogle':
+            $block['subject'] = t("Add NOINDEX and NOFOLLOW META Tags");
+            $block['content'] = cpmBlockGoogle();
+            return $block;
 	}
+}
+
+function cpmForceParent() {
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $nid = arg(1);
+        
+        $query = new EntityFieldQuery();
+        $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'content_page')
+            ->propertyCondition('status', 1) 
+            ->fieldCondition('field_content_page_articles', 'target_id', $nid); 
+        $result = $query->execute();
+        $parents = (!empty($result['node'])) ? array_keys($result['node']) : array();  
+        
+        if (isset($parents[0])) {
+            $alias = drupal_get_path_alias("node/" . $parents[0]);
+            header("HTTP/1.1 301 Moved Permanently"); 
+            header("Location: " . $alias); 
+            exit();
+        }
+    }    
+}
+
+function cpmBlockGoogle() {
+    $noindex = array(
+        "#tag" => "meta",
+        "#attributes" => array(
+            "name" => "robots",
+            "content" => "noindex, nofollow",
+        ),
+    );
+    drupal_add_html_head($noindex, "robots");
 }
 
 function cpmFileDownload() {
@@ -319,6 +369,7 @@ function cpmParseMenuTree($menuArray) {
     foreach($menuArray as $parent) {
         $link_path =    isset($parent['link']['link_path'])     ? $parent['link']['link_path'] : "";
         $link_title =   isset($parent['link']['link_title'])    ? $parent['link']['link_title'] : "";
+        $hidden =       isset($parent['link']['hidden'])        ? $parent['link']['hidden'] : 0;
         $depth =        isset($parent['link']['depth'])         ? $parent['link']['depth'] : 0;
         $weight =       isset($parent['link']['weight'])        ? $parent['link']['weight'] : 0;
         $external =     isset($parent['link']['external'])      ? $parent['link']['external'] : 0;
@@ -337,6 +388,7 @@ function cpmParseMenuTree($menuArray) {
         $tmp[$cnt]["link_path"]     = $link_path;
         $tmp[$cnt]["normal_path"]   = $normal_path;
         $tmp[$cnt]["link_title"]    = $link_title;
+        $tmp[$cnt]["hidden"]        = $hidden;
         $tmp[$cnt]["depth"]         = $depth;
         $tmp[$cnt]["weight"]        = $weight;
         $tmp[$cnt]["external"]      = $external;
@@ -351,6 +403,7 @@ function cpmParseMenuTree($menuArray) {
                 $tmp[$cnt]["link_path"]     = $item["link_path"];
                 $tmp[$cnt]["normal_path"]   = $item["normal_path"];
                 $tmp[$cnt]["link_title"]    = $item["link_title"];
+                $tmp[$cnt]["hidden"]        = $item["hidden"];
                 $tmp[$cnt]["depth"]         = $item["depth"];
                 $tmp[$cnt]["weight"]        = $item["weight"];
                 $tmp[$cnt]["external"]      = $item["external"];
@@ -414,6 +467,7 @@ function cpmIndex() {
 	$headDisp = 0;
 	$headTitl = "";
 	$headText = "";
+	$embiggen = 0;
 	
     $linkTree = array();
     // ==================================================== BUILD LINK TREE ====================================================
@@ -428,11 +482,13 @@ function cpmIndex() {
 				$headDisp = intval(variable_get("content_page_module_INDEX_DISPLAY_${mlid}", 0));
 				$headTitl = variable_get("content_page_module_INDEX_TITLE_${mlid}", "");
 				$headText = preg_replace("/[\n\r]/","</p><p>",variable_get("content_page_module_INDEX_HEADER_${mlid}", ""));
+				$embiggen = intval(variable_get("content_page_module_INDEX_EMBIGGEN_${mlid}", 0));
             }
         }
         // ======== NODES LINKED TO THIS MENU ========
         foreach($menuArray as $item) {
-            if ($item["plid"] == $mlid) {
+			$hide = isset($item["hidden"]) ? intval($item["hidden"]) : 0;
+            if (($item["plid"] == $mlid) && ($hide != 1)) {
                 $linkTree[] = $item;
             }
         }
@@ -440,7 +496,8 @@ function cpmIndex() {
         foreach($linkTree as $key=>$parent) {
             $mlid = $parent['mlid'];
             foreach($menuArray as $item) {
-                if ($item["plid"] == $mlid) {
+				$hide = isset($item["hidden"]) ? intval($item["hidden"]) : 0;
+                if (($item["plid"] == $mlid) && ($hide != 1)) {
                     $linkTree[$key]["child"][] = $item;
                 }
             }
@@ -470,6 +527,8 @@ function cpmIndex() {
         $child = isset($parent["child"]) ? $parent["child"] : array();
         if (($node_type == "content_page") && ($nid >= 0)) {
             $node = node_load($nid);
+            $status = isset($node->status) ? intval($node->status) : 0;
+            if ($status == 0) { continue; } // Don't display if unpublished
             $title = isset($node->title) ? $node->title : "";
             $uri = isset($node->field_content_page_image[LANGUAGE_NONE][0]['uri']) ? $node->field_content_page_image[LANGUAGE_NONE][0]['uri'] : "";
             $imgALT = isset($node->field_content_page_image[LANGUAGE_NONE][0]['alt']) ? $node->field_content_page_image[LANGUAGE_NONE][0]['alt'] : "";
@@ -516,6 +575,12 @@ function cpmIndex() {
             } else {
                 $noImg="";
             }
+			if ($embiggen != 0) {
+				$tilesize = ' data-span="2"';
+				$embiggen = 0;
+			} else {
+				$tilesize = '';
+			}
 $list=<<<HTML
     <div class='index_list_row'>
         <div class="content_index_landscape">
@@ -530,7 +595,7 @@ $list=<<<HTML
 HTML;
     
 $tile=<<<HTML
-    <div class='index_tile'>
+    <div class='index_tile' ${tilesize}>
         <div class="content_index_portrait">
             <div class="content_index_image${noImg}">${imgMarkupTile}</div>
             <div class="content_index_text${noImg}">
@@ -602,7 +667,7 @@ function cpModule_form($form, &$form_state) {
         '#type' => 'fieldset',
         '#title' => t("Settings -- File Types"),
         '#collapsible' => FALSE,
-        '#collapsed' => FALSE,			
+        '#collapsed' => FALSE,          
     );
             $instance_info = field_info_instance('node','field_content_page_physical_file','content_page_file');
             $filesDefault = isset($instance_info["settings"]["file_extensions"]) ? $instance_info["settings"]["file_extensions"] : "";
@@ -623,6 +688,23 @@ function cpModule_form($form, &$form_state) {
                 '#format'           => "plain_text",
                 '#size'             => 60,
                 '#maxlength'        => 80,
+            );       
+  
+    $form["fieldsetLOST"] = array(
+        '#type' => 'fieldset',
+        '#title' => t("Settings -- Do NOT Search"),
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,          
+    );
+            $form["fieldsetLOST"]["content_page_module_DO_NOT_SEARCH"] = array(
+                '#type'             => "textarea",
+                '#title'            => t("Don't Index these nodes."),
+                '#description'      => t("Comma separated list of Node IDs - Apache Solr will ignore."),
+                '#default_value'    => variable_get('content_page_module_DO_NOT_SEARCH', ''),
+                '#format'           => "plain_text",
+                '#rows'             => 5,
+                '#cols'             => 40,
+                '#resizable'        => FALSE,
             );       
   
     $form["fieldsetPAGES"] = array(
@@ -730,6 +812,12 @@ function cpModule_form($form, &$form_state) {
                         '#default_value'    => variable_get("content_page_module_INDEX_FEATURE_${mlid}", -1),
                         '#options'          => $options,
                     );       
+                    $form["fieldset${mlid}"]["content_page_module_INDEX_EMBIGGEN_${mlid}"] = array(
+                        '#type'             => "checkbox",
+                        '#title'            => t("Embiggen the First Tile"),
+                        '#default_value'    => variable_get("content_page_module_INDEX_EMBIGGEN_${mlid}", 0),
+                    );
+					
             }
             
         }
@@ -825,6 +913,17 @@ function cpModule_form_validate($form, &$form_state) {
 	$instance_info["description"] = "Enabled File Types - ${comma}";
 	field_update_instance($instance_info);
 	
+}
+
+function content_page_module_apachesolr_exclude($entity_id, $entity_type, $row, $env_id) {
+
+  $dont = preg_replace("/[^0-9,]/","",variable_get('content_page_module_DO_NOT_SEARCH', ''));
+  $exclude = explode(",",$dont);
+  if ($entity_type == 'node' && in_array($entity_id, $exclude)) {
+    return TRUE;
+  }
+  return FALSE;
+  
 }
 
 function cpmSafeSummary($markup,$length) {
@@ -931,6 +1030,8 @@ $html=<<<HTML
 	</style>
 HTML;
 
+	watchdog("404 - Page not found", "The page [:url] could not be found", array(":url" => $url), WATCHDOG_NOTICE);
+
     $output = array (
         '#type' => 'markup',
         '#prefix' => '',
@@ -945,6 +1046,7 @@ function cpm403AccessDenied() {
 
 	global $base_url;
     $img = $base_url . "/". drupal_get_path('module', 'content_page_module') . "/images/brigham.svg";
+    $css = file_get_contents(DRUPAL_ROOT . "/" . drupal_get_path('module', 'content_page_module') . "/css/brigham.css");
     $url = $_SERVER["REQUEST_URI"];
 
 $html=<<<HTML
@@ -961,6 +1063,8 @@ $html=<<<HTML
 		${css}
 	</style>
 HTML;
+
+	watchdog("403 - Access Denied", "You do not have permission to view the page [:url]", array(":url" => $url), WATCHDOG_NOTICE);
 
     $output = array (
         '#type' => 'markup',
